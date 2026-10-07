@@ -1,118 +1,368 @@
 <!doctype html>
 <html lang="uk">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#111722">
-<title>Доброслав — повітряна обстановка</title>
+  <meta charset="utf-8">
 
-<style>
-html,body{
-  margin:0;
-  width:100%;
-  height:100%;
-  background:#0b0e13;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+  >
 
-body{
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
+  <meta name="theme-color" content="#111722">
 
-header{
-  padding:10px 14px;
-  background:#111722;
-  color:#fff;
-  z-index:2;
-}
+  <title>Доброслав — повітряна обстановка</title>
 
-h1{
-  font-size:18px;
-  margin:0;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-small{
-  color:#aab4c3;
-}
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #0b0e13;
+      font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
 
-.map{
-  position:relative;
-  flex:1;
-  min-height:0;
-}
+    body {
+      display: flex;
+      flex-direction: column;
+      color: white;
+    }
 
-iframe{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  border:0;
-}
+    header {
+      position: relative;
+      z-index: 20;
+      background: #111722;
+      padding:
+        10px
+        max(14px, env(safe-area-inset-right))
+        9px
+        max(14px, env(safe-area-inset-left));
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
 
-.notice{
-  position:absolute;
-  top:12px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:3;
-  background:rgba(255,255,255,.92);
-  color:#20242b;
-  padding:8px 14px;
-  border-radius:18px;
-  font-size:12px;
-  font-weight:600;
-  white-space:nowrap;
-  max-width:85%;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
 
-footer{
-  padding:7px;
-  text-align:center;
-  background:#111722;
-  font-size:12px;
-  color:#aab4c3;
-}
+    .title {
+      min-width: 0;
+    }
 
-a{
-  color:#65aaff;
-}
-</style>
+    h1 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: #aab4c3;
+      font-size: 13px;
+    }
+
+    .clock {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #time {
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    #date {
+      margin-top: 2px;
+      color: #aab4c3;
+      font-size: 11px;
+    }
+
+    .monitor {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      background: #0b0e13;
+    }
+
+    iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .dobroslav {
+      position: absolute;
+      z-index: 10;
+      top: 12px;
+      left: 12px;
+
+      width: 230px;
+      max-width: calc(100% - 24px);
+
+      padding: 11px 13px;
+
+      background: rgba(11, 14, 19, .88);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 14px;
+
+      box-shadow: 0 6px 20px rgba(0,0,0,.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+
+      pointer-events: none;
+    }
+
+    .place {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ffb020;
+      box-shadow: 0 0 9px rgba(255,176,32,.9);
+      flex: 0 0 auto;
+    }
+
+    .region {
+      margin-top: 3px;
+      color: #b8c2d0;
+      font-size: 12px;
+    }
+
+    .zones {
+      display: flex;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .zone {
+      flex: 1;
+      text-align: center;
+      padding: 6px 4px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .zone strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .zone span {
+      display: block;
+      margin-top: 1px;
+      color: #aeb8c6;
+      font-size: 10px;
+    }
+
+    .notice {
+      position: absolute;
+      z-index: 10;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      padding: 8px 13px;
+
+      color: #222;
+      background: rgba(255,255,255,.94);
+
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    footer {
+      position: relative;
+      z-index: 20;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+
+      padding:
+        7px
+        max(12px, env(safe-area-inset-right))
+        calc(7px + env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+
+      background: #111722;
+      color: #aab4c3;
+
+      font-size: 11px;
+    }
+
+    footer a {
+      color: #70b7ff;
+      text-decoration: none;
+    }
+
+    @media (max-width: 700px) {
+      h1 {
+        font-size: 16px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+
+      #time {
+        font-size: 16px;
+      }
+
+      .dobroslav {
+        width: 190px;
+      }
+
+      .notice {
+        top: auto;
+        bottom: 10px;
+        font-size: 10px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-  <h1>Доброслав — повітряна обстановка</h1>
-  <small>Жива інформаційна карта</small>
-</header>
+  <header>
+    <div class="top">
 
-<div class="map">
+      <div class="title">
+        <h1>Доброслав — повітряна обстановка</h1>
+        <div class="subtitle">
+          Інформаційний монітор громади
+        </div>
+      </div>
 
-  <div class="notice">
-    NEPTUN — інформаційний агрегатор. Не офіційна тривога.
-  </div>
+      <div class="clock">
+        <div id="time">--:--:--</div>
+        <div id="date">--</div>
+      </div>
 
-  <iframe
-    src="https://neptun.in.ua/embed/map"
-    title="Карта повітряних загроз України — NEPTUN"
-    allow="geolocation"
-    loading="eager">
-  </iframe>
+    </div>
+  </header>
 
-</div>
 
-<footer>
-  Дані:
-  <a href="https://neptun.in.ua/"
-     target="_blank"
-     rel="noopener">
-     Карта повітряних тривог — NEPTUN
-  </a>
-</footer>
+  <main class="monitor">
+
+    <iframe
+      src="https://neptun.in.ua/embed/map"
+      title="Карта повітряних загроз України — NEPTUN"
+      allow="geolocation"
+      loading="eager">
+    </iframe>
+
+
+    <div class="dobroslav">
+
+      <div class="place">
+        <span class="dot"></span>
+        <span>Доброслав</span>
+      </div>
+
+      <div class="region">
+        Одеський район · Одеська область
+      </div>
+
+      <div class="zones">
+
+        <div class="zone">
+          <strong>20 км</strong>
+          <span>ближня зона</span>
+        </div>
+
+        <div class="zone">
+          <strong>50 км</strong>
+          <span>зона уваги</span>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="notice">
+      NEPTUN — інформаційний агрегатор. Не офіційний сигнал тривоги.
+    </div>
+
+  </main>
+
+
+  <footer>
+
+    <span>Джерело:</span>
+
+    <a
+      href="https://neptun.in.ua/"
+      target="_blank"
+      rel="noopener">
+      NEPTUN
+    </a>
+
+    <span>•</span>
+
+    <span>
+      Офіційні сигнали мають пріоритет
+    </span>
+
+  </footer>
+
+
+  <script>
+    function updateClock() {
+
+      const now = new Date();
+
+      document.getElementById("time").textContent =
+        now.toLocaleTimeString(
+          "uk-UA",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          }
+        );
+
+      document.getElementById("date").textContent =
+        now.toLocaleDateString(
+          "uk-UA",
+          {
+            weekday: "short",
+            day: "2-digit",
+            month: "short"
+          }
+        );
+    }
+
+    updateClock();
+
+    setInterval(updateClock, 1000);
+  </script>
 
 </body>
 </html>
