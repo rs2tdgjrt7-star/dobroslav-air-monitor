@@ -81,18 +81,13 @@ iframe{
   z-index:20;
   top:14px;
   left:14px;
-
-  width:330px;
+  width:350px;
   max-width:calc(100% - 28px);
-
   padding:13px;
-
   background:rgba(10,13,19,.94);
   border:1px solid rgba(255,255,255,.20);
   border-radius:15px;
-
   box-shadow:0 5px 20px rgba(0,0,0,.45);
-
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
@@ -145,8 +140,18 @@ iframe{
   font-weight:800;
 }
 
+.movement{
+  margin-top:6px;
+  padding:6px 8px;
+  border-radius:7px;
+  background:rgba(255,255,255,.07);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.3;
+}
+
 .details{
-  margin-top:4px;
+  margin-top:6px;
   font-size:12px;
   line-height:1.4;
   color:#d3d9e0;
@@ -183,17 +188,12 @@ iframe{
   width:100%;
   margin-top:9px;
   padding:8px;
-
   border:1px solid #4b596d;
   border-radius:8px;
-
   background:#1d2633;
   color:white;
-
   font-size:12px;
   font-weight:700;
-
-  cursor:pointer;
 }
 
 .updated{
@@ -208,24 +208,19 @@ iframe{
   top:14px;
   left:50%;
   transform:translateX(-50%);
-
   padding:8px 13px;
   border-radius:20px;
-
   background:rgba(255,255,255,.94);
   color:#222;
-
   font-size:11px;
   font-weight:600;
   white-space:nowrap;
-
   pointer-events:none;
 }
 
 footer{
   background:#111722;
   padding:7px 12px calc(7px + env(safe-area-inset-bottom));
-
   text-align:center;
   color:#aab4c3;
   font-size:11px;
@@ -238,10 +233,7 @@ footer a{
 
 @media(max-width:700px){
   h1{font-size:16px}
-
-  .panel{
-    width:290px;
-  }
+  .panel{width:300px}
 
   .notice{
     top:auto;
@@ -271,7 +263,6 @@ footer a{
 </div>
 </header>
 
-
 <main class="monitor">
 
 <iframe
@@ -279,7 +270,6 @@ footer a{
   title="Карта повітряних загроз — NEPTUN"
   loading="eager">
 </iframe>
-
 
 <div class="panel">
 
@@ -291,7 +281,6 @@ footer a{
   <div class="region">
     Одеський район · Одеська область
   </div>
-
 
   <div class="status" id="status">
 
@@ -305,10 +294,13 @@ footer a{
 
     <div class="distance" id="distance"></div>
 
+    <div class="movement" id="movement">
+      Очікування даних про рух…
+    </div>
+
     <div class="details" id="details"></div>
 
   </div>
-
 
   <div class="counters">
 
@@ -329,7 +321,6 @@ footer a{
 
   </div>
 
-
   <button
     class="sound"
     id="soundButton"
@@ -337,13 +328,11 @@ footer a{
     Увімкнути звук
   </button>
 
-
   <div class="updated" id="updated">
     Очікування оновлення…
   </div>
 
 </div>
-
 
 <div class="notice">
   NEPTUN — інформаційний агрегатор. Не офіційний сигнал тривоги.
@@ -351,18 +340,15 @@ footer a{
 
 </main>
 
-
 <footer>
   Дані:
-  <a
-    href="https://neptun.in.ua/"
-    target="_blank"
-    rel="noopener">
+  <a href="https://neptun.in.ua/"
+     target="_blank"
+     rel="noopener">
     NEPTUN
   </a>
   · Офіційні сигнали повітряної тривоги мають пріоритет
 </footer>
-
 
 <script>
 
@@ -370,12 +356,17 @@ footer a{
 const DOBROSLAV_LAT = 46.82;
 const DOBROSLAV_LON = 30.95;
 
-let soundEnabled = false;
-let audioContext = null;
-let previousZone = null;
+let soundEnabled=false;
+let audioContext=null;
+let previousZone=null;
+
+/*
+Зберігаємо попередні відстані
+для кожної окремої цілі.
+*/
+const previousDistances=new Map();
 
 
-/* Відстань */
 function distanceKm(lat1,lon1,lat2,lon2){
 
   const R=6371;
@@ -397,12 +388,11 @@ function distanceKm(lat1,lon1,lat2,lon2){
 }
 
 
-/* Напрямок руху */
 function directionName(deg){
 
   if(
-    deg === null ||
-    deg === undefined ||
+    deg===null ||
+    deg===undefined ||
     isNaN(deg)
   ){
     return "";
@@ -421,14 +411,13 @@ function directionName(deg){
 
   const index=
     Math.round(
-      ((deg%360)+360)%360 / 45
-    ) % 8;
+      (((deg%360)+360)%360)/45
+    )%8;
 
   return directions[index];
 }
 
 
-/* Тип цілі */
 function typeName(type){
 
   const names={
@@ -445,7 +434,26 @@ function typeName(type){
 }
 
 
-/* Звук */
+/*
+Намагаємося отримати стабільний
+ідентифікатор цілі.
+*/
+function threatId(t){
+
+  return String(
+    t.id ??
+    t.uuid ??
+    t.threatId ??
+    [
+      t.type || "unknown",
+      t.title || "",
+      Number(t.lat).toFixed(3),
+      Number(t.lon).toFixed(3)
+    ].join("|")
+  );
+}
+
+
 function enableSound(){
 
   try{
@@ -463,7 +471,6 @@ function enableSound(){
     document.getElementById("soundButton")
       .textContent="Звук увімкнено";
 
-    /* короткий тест */
     beep(660,0.10);
 
   }catch(e){
@@ -491,7 +498,6 @@ function beep(frequency,duration){
     gain.connect(audioContext.destination);
 
     oscillator.frequency.value=frequency;
-    oscillator.type="sine";
 
     gain.gain.setValueAtTime(
       0.15,
@@ -514,9 +520,6 @@ function beep(frequency,duration){
 
 
 function warningSound(zone){
-
-  if(!soundEnabled)
-    return;
 
   if(zone==="20"){
 
@@ -553,7 +556,65 @@ function warningSound(zone){
 }
 
 
-/* Дані NEPTUN */
+/*
+Визначаємо тенденцію відстані
+до тієї самої цілі.
+*/
+function movementInfo(t,km){
+
+  const id=threatId(t);
+
+  const previous=
+    previousDistances.get(id);
+
+  previousDistances.set(id,km);
+
+  if(previous===undefined){
+
+    return {
+      text:"Збираємо дані про рух…",
+      state:"unknown"
+    };
+
+  }
+
+  const change=km-previous;
+
+  /*
+  Менше 1 км — не робимо
+  висновок про напрямок.
+  */
+  if(Math.abs(change)<1){
+
+    return {
+      text:"→ БЕЗ СУТТЄВОЇ ЗМІНИ ВІДСТАНІ",
+      state:"steady"
+    };
+
+  }
+
+  if(change<0){
+
+    return {
+      text:
+        "↓ НАБЛИЖАЄТЬСЯ · "+
+        Math.abs(change).toFixed(1)+
+        " км",
+      state:"approaching"
+    };
+
+  }
+
+  return {
+    text:
+      "↑ ВІДДАЛЯЄТЬСЯ · +"+
+      change.toFixed(1)+
+      " км",
+    state:"leaving"
+  };
+}
+
+
 async function loadThreats(){
 
   const title=
@@ -564,6 +625,9 @@ async function loadThreats(){
 
   const distance=
     document.getElementById("distance");
+
+  const movement=
+    document.getElementById("movement");
 
   const details=
     document.getElementById("details");
@@ -586,8 +650,7 @@ async function loadThreats(){
     if(!response.ok)
       throw new Error("HTTP");
 
-    const data=
-      await response.json();
+    const data=await response.json();
 
     const threats=
       Array.isArray(data.threats)
@@ -603,11 +666,6 @@ async function loadThreats(){
 
 
     for(const t of threats){
-
-      /*
-      areaOnly не використовуємо
-      для розрахунку відстані.
-      */
 
       if(t.areaOnly===true)
         continue;
@@ -631,14 +689,9 @@ async function loadThreats(){
         );
 
 
-      if(km<=20)
-        count20++;
-
-      if(km<=50)
-        count50++;
-
-      if(km<=100)
-        count100++;
+      if(km<=20) count20++;
+      if(km<=50) count50++;
+      if(km<=100) count100++;
 
 
       if(!nearest || km<nearest.km){
@@ -676,6 +729,9 @@ async function loadThreats(){
       distance.textContent="";
       details.textContent="";
 
+      movement.textContent=
+        "Немає даних для визначення руху";
+
       status.style.background="#18211c";
       status.style.borderColor="#315c3e";
 
@@ -692,6 +748,32 @@ async function loadThreats(){
 
       distance.textContent=
         rounded+" км";
+
+
+      const move=
+        movementInfo(t,km);
+
+      movement.textContent=
+        move.text;
+
+
+      if(move.state==="approaching"){
+
+        movement.style.color="#ffcf55";
+
+      }
+
+      else if(move.state==="leaving"){
+
+        movement.style.color="#70d99a";
+
+      }
+
+      else{
+
+        movement.style.color="#c7d0dc";
+
+      }
 
 
       let info=
@@ -711,9 +793,8 @@ async function loadThreats(){
         const direction=
           directionName(t.heading);
 
-        if(direction){
+        if(direction)
           info+=" — "+direction;
-        }
       }
 
 
@@ -809,11 +890,6 @@ async function loadThreats(){
     }
 
 
-    /*
-    Звуковий сигнал тільки при переході
-    у ближчу зону, а не кожні 5 секунд.
-    */
-
     const dangerLevel={
       safe:0,
       "100":1,
@@ -824,7 +900,7 @@ async function loadThreats(){
 
     if(
       previousZone!==null &&
-      dangerLevel[currentZone] >
+      dangerLevel[currentZone]>
       dangerLevel[previousZone]
     ){
 
@@ -856,9 +932,13 @@ async function loadThreats(){
       "НЕМАЄ ОНОВЛЕННЯ ДАНИХ";
 
     text.textContent=
-      "Не вдалося отримати API NEPTUN. Карта може працювати окремо.";
+      "Не вдалося отримати API NEPTUN.";
 
     distance.textContent="";
+
+    movement.textContent=
+      "Очікування відновлення даних…";
+
     details.textContent="";
 
     status.style.background="#39251d";
@@ -869,12 +949,11 @@ async function loadThreats(){
 
     document.getElementById("updated")
       .textContent=
-      "Помилка API · повторна спроба через 5 с";
+      "Помилка API · повтор через 5 с";
   }
 }
 
 
-/* Годинник */
 function clock(){
 
   const now=new Date();
@@ -904,11 +983,9 @@ function clock(){
 
 
 clock();
-
 setInterval(clock,1000);
 
 loadThreats();
-
 setInterval(loadThreats,5000);
 
 </script>
