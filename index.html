@@ -2,36 +2,116 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111722">
 <title>Доброслав — повітряна обстановка</title>
+
 <style>
-html,body{margin:0;width:100%;height:100%;background:#0b0e13;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{display:flex;flex-direction:column}
-header{padding:10px 14px;background:#111722;color:#fff}
-h1{font-size:18px;margin:0}
-small{color:#aab4c3}
-iframe{width:100%;flex:1;border:0}
-footer{padding:7px;text-align:center;background:#111722;font-size:12px}
-a{color:#65aaff}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:#0b0e13;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+header{
+  padding:10px 14px;
+  background:#111722;
+  color:#fff;
+  z-index:2;
+}
+
+h1{
+  font-size:18px;
+  margin:0;
+}
+
+small{
+  color:#aab4c3;
+}
+
+.map{
+  position:relative;
+  flex:1;
+  min-height:0;
+}
+
+iframe{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+}
+
+.notice{
+  position:absolute;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:3;
+  background:rgba(255,255,255,.92);
+  color:#20242b;
+  padding:8px 14px;
+  border-radius:18px;
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  max-width:85%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+footer{
+  padding:7px;
+  text-align:center;
+  background:#111722;
+  font-size:12px;
+  color:#aab4c3;
+}
+
+a{
+  color:#65aaff;
+}
 </style>
 </head>
+
 <body>
 
 <header>
-<h1>Доброслав — повітряна обстановка</h1>
-<small>Жива інформаційна карта</small>
+  <h1>Доброслав — повітряна обстановка</h1>
+  <small>Жива інформаційна карта</small>
 </header>
 
-<iframe
-src="https://neptun.in.ua/embed/map"
-title="Карта повітряних загроз України — NEPTUN"
-allow="geolocation">
-</iframe>
+<div class="map">
+
+  <div class="notice">
+    NEPTUN — інформаційний агрегатор. Не офіційна тривога.
+  </div>
+
+  <iframe
+    src="https://neptun.in.ua/embed/map"
+    title="Карта повітряних загроз України — NEPTUN"
+    allow="geolocation"
+    loading="eager">
+  </iframe>
+
+</div>
 
 <footer>
-<a href="https://neptun.in.ua/" target="_blank">
-Дані: Карта повітряних тривог — NEPTUN
-</a>
+  Дані:
+  <a href="https://neptun.in.ua/"
+     target="_blank"
+     rel="noopener">
+     Карта повітряних тривог — NEPTUN
+  </a>
 </footer>
 
 </body>
