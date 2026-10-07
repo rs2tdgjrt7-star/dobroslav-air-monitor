@@ -15,7 +15,7 @@ html,body{
   width:100%;
   height:100%;
   background:#0b0e13;
-  color:#fff;
+  color:white;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   overflow:hidden;
 }
@@ -49,9 +49,7 @@ h1{
   font-size:13px;
 }
 
-.clock{
-  text-align:right;
-}
+.clock{text-align:right}
 
 #time{
   font-size:19px;
@@ -84,16 +82,17 @@ iframe{
   top:14px;
   left:14px;
 
-  width:300px;
+  width:330px;
   max-width:calc(100% - 28px);
 
   padding:13px;
 
-  background:rgba(10,13,19,.93);
+  background:rgba(10,13,19,.94);
   border:1px solid rgba(255,255,255,.20);
   border-radius:15px;
 
   box-shadow:0 5px 20px rgba(0,0,0,.45);
+
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
@@ -142,7 +141,7 @@ iframe{
 
 .distance{
   margin-top:8px;
-  font-size:27px;
+  font-size:29px;
   font-weight:800;
 }
 
@@ -153,29 +152,48 @@ iframe{
   color:#d3d9e0;
 }
 
-.zones{
-  display:flex;
-  gap:8px;
+.counters{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
   margin-top:10px;
 }
 
-.zone{
-  flex:1;
-  padding:7px 5px;
+.counter{
   text-align:center;
+  padding:7px 3px;
   background:rgba(255,255,255,.07);
   border:1px solid rgba(255,255,255,.12);
   border-radius:8px;
 }
 
-.zone strong{
+.counter strong{
   display:block;
-  font-size:15px;
+  font-size:19px;
 }
 
-.zone span{
-  font-size:10px;
+.counter span{
+  display:block;
+  margin-top:2px;
   color:#aeb8c6;
+  font-size:10px;
+}
+
+.sound{
+  width:100%;
+  margin-top:9px;
+  padding:8px;
+
+  border:1px solid #4b596d;
+  border-radius:8px;
+
+  background:#1d2633;
+  color:white;
+
+  font-size:12px;
+  font-weight:700;
+
+  cursor:pointer;
 }
 
 .updated{
@@ -190,19 +208,24 @@ iframe{
   top:14px;
   left:50%;
   transform:translateX(-50%);
+
   padding:8px 13px;
   border-radius:20px;
+
   background:rgba(255,255,255,.94);
   color:#222;
+
   font-size:11px;
   font-weight:600;
   white-space:nowrap;
+
   pointer-events:none;
 }
 
 footer{
   background:#111722;
   padding:7px 12px calc(7px + env(safe-area-inset-bottom));
+
   text-align:center;
   color:#aab4c3;
   font-size:11px;
@@ -215,7 +238,11 @@ footer a{
 
 @media(max-width:700px){
   h1{font-size:16px}
-  .panel{width:260px}
+
+  .panel{
+    width:290px;
+  }
+
   .notice{
     top:auto;
     bottom:10px;
@@ -227,19 +254,21 @@ footer a{
 <body>
 
 <header>
-  <div class="top">
+<div class="top">
 
-    <div>
-      <h1>Доброслав — повітряна обстановка</h1>
-      <div class="subtitle">Локальний інформаційний монітор</div>
+  <div>
+    <h1>Доброслав — повітряна обстановка</h1>
+    <div class="subtitle">
+      Локальний інформаційний монітор
     </div>
-
-    <div class="clock">
-      <div id="time">--:--:--</div>
-      <div id="date">--</div>
-    </div>
-
   </div>
+
+  <div class="clock">
+    <div id="time">--:--:--</div>
+    <div id="date">--</div>
+  </div>
+
+</div>
 </header>
 
 
@@ -281,19 +310,33 @@ footer a{
   </div>
 
 
-  <div class="zones">
+  <div class="counters">
 
-    <div class="zone">
-      <strong>20 км</strong>
-      <span>ближня зона</span>
+    <div class="counter">
+      <strong id="count20">0</strong>
+      <span>до 20 км</span>
     </div>
 
-    <div class="zone">
-      <strong>50 км</strong>
-      <span>зона уваги</span>
+    <div class="counter">
+      <strong id="count50">0</strong>
+      <span>до 50 км</span>
+    </div>
+
+    <div class="counter">
+      <strong id="count100">0</strong>
+      <span>до 100 км</span>
     </div>
 
   </div>
+
+
+  <button
+    class="sound"
+    id="soundButton"
+    onclick="enableSound()">
+    Увімкнути звук
+  </button>
+
 
   <div class="updated" id="updated">
     Очікування оновлення…
@@ -311,7 +354,10 @@ footer a{
 
 <footer>
   Дані:
-  <a href="https://neptun.in.ua/" target="_blank" rel="noopener">
+  <a
+    href="https://neptun.in.ua/"
+    target="_blank"
+    rel="noopener">
     NEPTUN
   </a>
   · Офіційні сигнали повітряної тривоги мають пріоритет
@@ -320,35 +366,69 @@ footer a{
 
 <script>
 
-/* Координати центру Доброслава */
+/* Доброслав */
 const DOBROSLAV_LAT = 46.82;
 const DOBROSLAV_LON = 30.95;
 
+let soundEnabled = false;
+let audioContext = null;
+let previousZone = null;
 
-/* Відстань між двома координатами */
+
+/* Відстань */
 function distanceKm(lat1,lon1,lat2,lon2){
 
-  const R = 6371;
+  const R=6371;
 
-  const dLat =
-    (lat2-lat1) * Math.PI / 180;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
 
-  const dLon =
-    (lon2-lon1) * Math.PI / 180;
+  const a=
+    Math.sin(dLat/2)*Math.sin(dLat/2)+
+    Math.cos(lat1*Math.PI/180)*
+    Math.cos(lat2*Math.PI/180)*
+    Math.sin(dLon/2)*Math.sin(dLon/2);
 
-  const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1*Math.PI/180) *
-    Math.cos(lat2*Math.PI/180) *
-    Math.sin(dLon/2) *
-    Math.sin(dLon/2);
-
-  return R * 2 *
-    Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return R*2*
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    );
 }
 
 
-/* Назви типів */
+/* Напрямок руху */
+function directionName(deg){
+
+  if(
+    deg === null ||
+    deg === undefined ||
+    isNaN(deg)
+  ){
+    return "";
+  }
+
+  const directions=[
+    "на північ",
+    "на північний схід",
+    "на схід",
+    "на південний схід",
+    "на південь",
+    "на південний захід",
+    "на захід",
+    "на північний захід"
+  ];
+
+  const index=
+    Math.round(
+      ((deg%360)+360)%360 / 45
+    ) % 8;
+
+  return directions[index];
+}
+
+
+/* Тип цілі */
 function typeName(type){
 
   const names={
@@ -365,30 +445,139 @@ function typeName(type){
 }
 
 
-/* Оновлення інформації */
-async function loadThreats(){
-
-  const title =
-    document.getElementById("statusTitle");
-
-  const text =
-    document.getElementById("statusText");
-
-  const distance =
-    document.getElementById("distance");
-
-  const details =
-    document.getElementById("details");
-
-  const status =
-    document.getElementById("status");
-
-  const dot =
-    document.getElementById("dot");
+/* Звук */
+function enableSound(){
 
   try{
 
-    const response =
+    audioContext=
+      new (window.AudioContext ||
+           window.webkitAudioContext)();
+
+    if(audioContext.state==="suspended"){
+      audioContext.resume();
+    }
+
+    soundEnabled=true;
+
+    document.getElementById("soundButton")
+      .textContent="Звук увімкнено";
+
+    /* короткий тест */
+    beep(660,0.10);
+
+  }catch(e){
+
+    document.getElementById("soundButton")
+      .textContent="Звук недоступний";
+  }
+}
+
+
+function beep(frequency,duration){
+
+  if(!soundEnabled || !audioContext)
+    return;
+
+  try{
+
+    const oscillator=
+      audioContext.createOscillator();
+
+    const gain=
+      audioContext.createGain();
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.frequency.value=frequency;
+    oscillator.type="sine";
+
+    gain.gain.setValueAtTime(
+      0.15,
+      audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      audioContext.currentTime+duration
+    );
+
+    oscillator.start();
+
+    oscillator.stop(
+      audioContext.currentTime+duration
+    );
+
+  }catch(e){}
+}
+
+
+function warningSound(zone){
+
+  if(!soundEnabled)
+    return;
+
+  if(zone==="20"){
+
+    beep(900,0.18);
+
+    setTimeout(
+      ()=>beep(900,0.18),
+      300
+    );
+
+    setTimeout(
+      ()=>beep(900,0.30),
+      600
+    );
+
+  }
+
+  else if(zone==="50"){
+
+    beep(700,0.20);
+
+    setTimeout(
+      ()=>beep(700,0.20),
+      350
+    );
+
+  }
+
+  else if(zone==="100"){
+
+    beep(520,0.12);
+
+  }
+}
+
+
+/* Дані NEPTUN */
+async function loadThreats(){
+
+  const title=
+    document.getElementById("statusTitle");
+
+  const text=
+    document.getElementById("statusText");
+
+  const distance=
+    document.getElementById("distance");
+
+  const details=
+    document.getElementById("details");
+
+  const status=
+    document.getElementById("status");
+
+  const dot=
+    document.getElementById("dot");
+
+
+  try{
+
+    const response=
       await fetch(
         "https://neptun.in.ua/api/v1/threats",
         {cache:"no-store"}
@@ -397,38 +586,43 @@ async function loadThreats(){
     if(!response.ok)
       throw new Error("HTTP");
 
-    const data = await response.json();
+    const data=
+      await response.json();
 
-    const threats =
+    const threats=
       Array.isArray(data.threats)
       ? data.threats
       : [];
 
-    let nearest = null;
+
+    let nearest=null;
+
+    let count20=0;
+    let count50=0;
+    let count100=0;
 
 
     for(const t of threats){
 
       /*
-       areaOnly НЕ використовуємо:
-       координата такого запису не є
-       реальною позицією цілі.
+      areaOnly не використовуємо
+      для розрахунку відстані.
       */
 
-      if(t.areaOnly === true)
+      if(t.areaOnly===true)
         continue;
 
       if(
-        typeof t.lat !== "number" ||
-        typeof t.lon !== "number"
+        typeof t.lat!=="number" ||
+        typeof t.lon!=="number"
       )
         continue;
 
-      if(t.status && t.status !== "active")
+      if(t.status && t.status!=="active")
         continue;
 
 
-      const km =
+      const km=
         distanceKm(
           DOBROSLAV_LAT,
           DOBROSLAV_LON,
@@ -437,7 +631,17 @@ async function loadThreats(){
         );
 
 
-      if(!nearest || km < nearest.km){
+      if(km<=20)
+        count20++;
+
+      if(km<=50)
+        count50++;
+
+      if(km<=100)
+        count100++;
+
+
+      if(!nearest || km<nearest.km){
 
         nearest={
           threat:t,
@@ -448,16 +652,29 @@ async function loadThreats(){
     }
 
 
+    document.getElementById("count20")
+      .textContent=count20;
+
+    document.getElementById("count50")
+      .textContent=count50;
+
+    document.getElementById("count100")
+      .textContent=count100;
+
+
+    let currentZone="safe";
+
+
     if(!nearest){
 
-      title.textContent =
+      title.textContent=
         "Координатних цілей немає";
 
-      text.textContent =
-        "У поточних даних NEPTUN немає активних точкових цілей для розрахунку.";
+      text.textContent=
+        "Активних точкових цілей для розрахунку зараз немає.";
 
-      distance.textContent = "";
-      details.textContent = "";
+      distance.textContent="";
+      details.textContent="";
 
       status.style.background="#18211c";
       status.style.borderColor="#315c3e";
@@ -469,30 +686,36 @@ async function loadThreats(){
 
     else{
 
-      const km =
-        Math.round(nearest.km);
+      const km=nearest.km;
+      const rounded=Math.round(km);
+      const t=nearest.threat;
 
-      const t =
-        nearest.threat;
-
-      distance.textContent =
-        km + " км";
+      distance.textContent=
+        rounded+" км";
 
 
-      let info =
-        typeName(t.type);
+      let info=
+        t.title || typeName(t.type);
 
-      if(t.title)
-        info = t.title;
 
-      if(t.heading !== null &&
-         t.heading !== undefined){
+      if(
+        t.heading!==null &&
+        t.heading!==undefined
+      ){
 
         info +=
-          " · курс " +
-          Math.round(t.heading) +
+          " · курс "+
+          Math.round(t.heading)+
           "°";
+
+        const direction=
+          directionName(t.heading);
+
+        if(direction){
+          info+=" — "+direction;
+        }
       }
+
 
       if(t.confidenceLevel){
 
@@ -503,52 +726,77 @@ async function loadThreats(){
         };
 
         info +=
-          " · " +
+          " · "+
           (levels[t.confidenceLevel] ||
            t.confidenceLevel);
       }
 
-      details.textContent = info;
+
+      details.textContent=info;
 
 
-      if(km <= 20){
+      if(km<=20){
 
-        title.textContent =
+        currentZone="20";
+
+        title.textContent=
           "ЦІЛЬ У ЗОНІ 20 КМ";
 
-        text.textContent =
-          "За координатними даними NEPTUN.";
+        text.textContent=
+          "Найближча координатна ціль NEPTUN.";
 
-        status.style.background="#44191b";
-        status.style.borderColor="#d84b50";
+        status.style.background="#49191c";
+        status.style.borderColor="#e34d53";
 
         dot.style.background="#ff3b3b";
-        dot.style.boxShadow="0 0 12px #ff3b3b";
+        dot.style.boxShadow="0 0 13px #ff3b3b";
 
       }
 
-      else if(km <= 50){
+      else if(km<=50){
 
-        title.textContent =
+        currentZone="50";
+
+        title.textContent=
           "ЦІЛЬ У ЗОНІ 50 КМ";
 
-        text.textContent =
-          "За координатними даними NEPTUN.";
+        text.textContent=
+          "Найближча координатна ціль NEPTUN.";
 
-        status.style.background="#493718";
-        status.style.borderColor="#d9a52e";
+        status.style.background="#493218";
+        status.style.borderColor="#e69a2b";
 
-        dot.style.background="#ffb020";
-        dot.style.boxShadow="0 0 12px #ffb020";
+        dot.style.background="#ff9500";
+        dot.style.boxShadow="0 0 12px #ff9500";
+
+      }
+
+      else if(km<=100){
+
+        currentZone="100";
+
+        title.textContent=
+          "ЦІЛЬ У ЗОНІ 100 КМ";
+
+        text.textContent=
+          "Інформаційна зона спостереження.";
+
+        status.style.background="#403b17";
+        status.style.borderColor="#c8ad36";
+
+        dot.style.background="#ffd43b";
+        dot.style.boxShadow="0 0 12px #ffd43b";
 
       }
 
       else{
 
-        title.textContent =
-          "Поза зоною 50 км";
+        currentZone="safe";
 
-        text.textContent =
+        title.textContent=
+          "Поза зоною 100 км";
+
+        text.textContent=
           "Найближча активна координатна ціль NEPTUN.";
 
         status.style.background="#18211c";
@@ -558,13 +806,39 @@ async function loadThreats(){
         dot.style.boxShadow="0 0 10px #49c774";
 
       }
+    }
+
+
+    /*
+    Звуковий сигнал тільки при переході
+    у ближчу зону, а не кожні 5 секунд.
+    */
+
+    const dangerLevel={
+      safe:0,
+      "100":1,
+      "50":2,
+      "20":3
+    };
+
+
+    if(
+      previousZone!==null &&
+      dangerLevel[currentZone] >
+      dangerLevel[previousZone]
+    ){
+
+      warningSound(currentZone);
 
     }
 
 
+    previousZone=currentZone;
+
+
     document.getElementById("updated")
-      .textContent =
-      "Дані оновлено: " +
+      .textContent=
+      "Дані оновлено: "+
       new Date().toLocaleTimeString(
         "uk-UA",
         {
@@ -578,23 +852,25 @@ async function loadThreats(){
 
   catch(e){
 
-    title.textContent =
-      "Немає з'єднання з даними";
+    title.textContent=
+      "НЕМАЄ ОНОВЛЕННЯ ДАНИХ";
 
-    text.textContent =
-      "Карта може працювати окремо. Перевіряємо API повторно.";
+    text.textContent=
+      "Не вдалося отримати API NEPTUN. Карта може працювати окремо.";
 
     distance.textContent="";
     details.textContent="";
 
-    status.style.background="#332a1b";
-    status.style.borderColor="#80652c";
+    status.style.background="#39251d";
+    status.style.borderColor="#9c5939";
+
+    dot.style.background="#ff9500";
+    dot.style.boxShadow="0 0 10px #ff9500";
 
     document.getElementById("updated")
-      .textContent =
-      "Помилка отримання API · повтор через 5 с";
+      .textContent=
+      "Помилка API · повторна спроба через 5 с";
   }
-
 }
 
 
@@ -604,7 +880,7 @@ function clock(){
   const now=new Date();
 
   document.getElementById("time")
-    .textContent =
+    .textContent=
     now.toLocaleTimeString(
       "uk-UA",
       {
@@ -615,7 +891,7 @@ function clock(){
     );
 
   document.getElementById("date")
-    .textContent =
+    .textContent=
     now.toLocaleDateString(
       "uk-UA",
       {
@@ -628,11 +904,11 @@ function clock(){
 
 
 clock();
+
 setInterval(clock,1000);
 
 loadThreats();
 
-/* REST — не частіше одного разу на 5 секунд */
 setInterval(loadThreats,5000);
 
 </script>
