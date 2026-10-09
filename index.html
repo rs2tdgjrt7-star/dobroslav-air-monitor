@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111722">
+<title>Доброслав — повітряна обстановка 3.5.9</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#0b0e13;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+header{height:92px;background:#111722;border-bottom:1px solid #263142;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:relative;z-index:1000}
+h1{font-size:25px;margin:0 0 5px}.sub{color:#9aa6b5;font-size:15px}.clock{text-align:right;font-weight:700;font-size:22px}.date{font-size:13px;color:#9aa6b5;font-weight:400;margin-top:4px}
+#map{position:absolute;inset:92px 0 48px;z-index:1}.leaflet-container{background:#111820}.leaflet-tile{filter:brightness(.72) saturate(.72) contrast(1.12)}
+.panel{position:absolute;z-index:900;left:20px;top:108px;width:350px;max-width:calc(100vw - 40px);background:rgba(10,14,21,.94);border:1px solid #344154;border-radius:20px;padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.place{font-size:24px;font-weight:800}.place small{display:block;font-size:15px;color:#9aa6b5;font-weight:500;margin-top:7px}.dot{display:inline-block;width:14px;height:14px;border-radius:50%;background:#e2c34b;margin-right:10px;box-shadow:0 0 12px #e2c34b}
+.status{margin-top:16px;border:2px solid #c8ad36;border-radius:16px;background:#403b17;padding:16px}.status h2{font-size:21px;margin:0 0 5px}.status p{margin:0;color:#d4d8df}.distance{font-size:42px;font-weight:900;margin:13px 0 8px}.movement{background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;font-weight:750}.details{margin-top:12px;color:#d7dce5}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.count{background:#171e29;border:1px solid #354154;border-radius:12px;text-align:center;padding:11px}.count b{font-size:29px;display:block}.count span{font-size:13px;color:#aab4c2}
+button{width:100%;margin-top:13px;padding:12px;border-radius:10px;border:1px solid #40506a;background:#1b2a3d;color:white;font-weight:750}#updated{font-size:13px;color:#8e9aab;margin-top:11px}
+.notice{position:absolute;z-index:850;top:111px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.93);color:#20242a;border-radius:22px;padding:10px 22px;font-weight:700;white-space:nowrap;max-width:45vw;overflow:hidden;text-overflow:ellipsis}
+footer{position:absolute;z-index:1000;bottom:0;left:0;right:0;height:48px;background:#111722;border-top:1px solid #263142;display:flex;align-items:center;justify-content:center;color:#98a5b6;font-size:14px}footer b{color:#70a9db}
+.target-wrap{position:relative;width:220px;height:42px;pointer-events:auto;overflow:visible}.target-icon{position:absolute;left:0;top:0;width:26px;height:26px;filter:drop-shadow(0 1px 3px #000);transform-origin:13px 13px}.target-icon svg{display:block;width:26px;height:26px;overflow:visible}.target-icon.approx{opacity:.55}.target-label{position:absolute;left:29px;top:0;white-space:nowrap;display:block;z-index:5;background:rgba(10,14,21,.86);border:1px solid #536174;border-radius:7px;padding:3px 6px;color:#fff;font-size:11px;font-weight:750;box-shadow:0 2px 8px rgba(0,0,0,.3)}.dobro-wrap{position:relative;width:110px;height:34px}.dobro-icon{position:absolute;left:0;top:6px;width:17px;height:17px;background:#5ae39a;border:3px solid white;border-radius:50%;box-shadow:0 0 14px #5ae39a}.dobro-label{position:absolute;left:23px;top:4px;background:rgba(10,14,21,.82);border-radius:6px;padding:2px 6px;font-size:12px;font-weight:800;white-space:nowrap}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#111722;color:#fff}.leaflet-popup-content{line-height:1.45}
+.legend{position:absolute;z-index:840;right:14px;bottom:62px;background:rgba(10,14,21,.88);border:1px solid #344154;border-radius:10px;padding:7px 9px;color:#dce3ec;font-size:11px;line-height:1.55;box-shadow:0 5px 18px rgba(0,0,0,.25)}
+.legend span{white-space:nowrap;margin-right:8px}.legend .approx-key{color:#ffb347}
+.cluster-badge{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(17,23,34,.94);border:2px solid #fff;color:#fff;font-size:13px;font-weight:900;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+.cluster-label{position:absolute;left:42px;top:7px;background:rgba(10,14,21,.88);border:1px solid #536174;border-radius:7px;padding:3px 6px;white-space:nowrap;font-size:11px;font-weight:750}
+.fresh{color:#70d99a}.aging{color:#ffcf55}.stale{color:#ff8a8a}
+.leaflet-control-attribution{font-size:10px;background:rgba(255,255,255,.75)!important}
+@media(max-width:800px){header{height:78px;padding:0 12px}h1{font-size:19px}.sub{font-size:12px}.clock{font-size:17px}#map{inset:78px 0 42px}.panel{left:10px;top:88px;width:320px;max-width:calc(100vw - 20px);padding:12px}.notice{display:none}.status{padding:12px}.distance{font-size:34px}footer{height:42px;font-size:11px}}
+
+.toolbar{position:absolute;right:14px;top:108px;z-index:950;display:flex;gap:7px;flex-wrap:wrap;max-width:430px;justify-content:flex-end}.toolbar button{width:auto;margin:0;padding:9px 12px;cursor:pointer;background:#17273c;border:1px solid #60718a}.toolbar button.selected{background:#28629b}.alert-state{position:absolute;z-index:940;right:14px;top:158px;background:#151d29e8;border:1px solid #52617a;padding:8px 12px;border-radius:9px;font-size:12px;max-width:340px}.legend{bottom:64px}@media(max-width:800px){.toolbar{top:84px;right:8px;max-width:210px}.toolbar button{font-size:11px;padding:7px}.alert-state{top:154px;right:8px;max-width:210px}.panel{top:88px}}
+.panel.collapsed .status,.panel.collapsed .counts,.panel.collapsed #sound,.panel.collapsed #updated{display:none}.panel.collapsed{width:260px}.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.panel-heading button{width:auto;margin:0;padding:7px 10px}.source-health{font-size:12px;margin-top:9px;color:#ffcf55}.layer-menu{position:absolute;z-index:960;right:14px;top:207px;background:#111b2beF;border:1px solid #52617a;border-radius:12px;padding:12px;min-width:205px;font-size:13px}.layer-menu label{display:block;margin:9px 0}.layer-menu input{margin-right:8px}.layer-menu[hidden]{display:none!important}.toolbar button:focus-visible,.panel button:focus-visible{outline:2px solid #fff}
+
+/* v2.5, базова логіка v2.4 */
+.toolbar{max-width:550px}.alert-state{top:166px;line-height:1.45;max-width:355px}.oblast-state{position:absolute;z-index:945;top:216px;right:14px;max-width:355px;background:#111722ee;border:1px solid #60718a;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:750}.oblast-state.active{border-color:#ee7777;color:#ffd0d0}.oblast-state.partial{border-color:#eab45e;color:#ffdfaa}.oblast-state.clear{border-color:#55a67e;color:#a8f0c8}.oblast-state.unknown{border-color:#a78b52;color:#ffe0a0}.layer-menu{top:270px}
+@media(min-width:801px){.toolbar{max-width:calc(100vw - 430px)}}
+@media(min-width:651px) and (max-width:800px){.toolbar{max-width:calc(100vw - 345px)}.alert-state{top:176px;max-width:calc(100vw - 345px)}.oblast-state{top:232px;max-width:calc(100vw - 345px)}.layer-menu{top:285px}}
+@media(max-width:650px){.toolbar{left:10px;right:10px;max-width:none;top:85px}.alert-state{left:10px;right:10px;max-width:none;top:153px}.oblast-state{left:10px;right:10px;max-width:none;top:191px}.panel{top:252px;max-height:calc(100dvh - 305px);overflow:auto}.layer-menu{top:254px}}
+
+/* v2.6: інформаційний напис окремо від керування, адаптивна панель */
+.notice{position:absolute;z-index:930;top:102px;left:480px;right:660px;width:auto;max-width:none;transform:none;white-space:normal;text-align:left;padding:9px 12px;font-size:12px;line-height:1.35;pointer-events:none}
+.toolbar{top:105px;right:14px;max-width:600px;gap:6px}
+.alert-state{top:158px;right:14px}.oblast-state{top:205px;right:14px}.layer-menu{top:265px;right:14px}
+@media(max-width:1200px){.notice{display:none}.toolbar{max-width:calc(100vw - 475px)}.toolbar button{padding:8px 9px;font-size:12px}}
+@media(min-width:801px) and (max-width:1050px){.toolbar{max-width:calc(100vw - 360px)}.panel{width:315px}.alert-state{top:190px}.oblast-state{top:240px}.layer-menu{top:300px}}
+@media(max-width:800px){.toolbar{left:10px;right:10px;top:84px;max-width:none;justify-content:flex-end}.alert-state{top:168px;right:10px}.oblast-state{top:215px;right:10px}.layer-menu{top:275px;right:10px}}
+@media(max-width:650px){.toolbar{position:absolute;top:80px;left:8px;right:8px;max-width:none;justify-content:center;gap:4px}.toolbar button{font-size:10px;padding:6px}.alert-state{top:162px;left:8px;right:8px;max-width:none}.oblast-state{top:205px;left:8px;right:8px;max-width:none}.panel{top:280px;max-height:calc(100dvh - 330px);overflow:auto}.layer-menu{top:278px;right:8px}}
+/* v2.6: читабельність на iPad та статуси джерел */
+.data-audit{margin-top:9px;font-size:12px;color:#c5d1e0;line-height:1.5;border-top:1px solid #344154;padding-top:8px}
+.data-audit strong{color:#fff}.source-health{line-height:1.45}
+@media(min-width:801px) and (max-width:1180px){.toolbar{max-width:calc(100vw - 380px)}.panel{width:330px}.toolbar button{font-size:11px;padding:8px}}
+@media(max-width:650px){.panel{max-height:calc(100dvh - 345px)}}
+/* 2.8.2: avoid iPad overlap, make report list visible and scrollable */
+@media(min-width:801px){.panel{max-height:calc(100dvh - 175px);overflow-y:auto;scrollbar-width:thin}.toolbar{max-width:calc(100vw - 475px)}.alert-state{top:165px}.oblast-state{top:216px}.layer-menu{top:285px}}
+@media(min-width:801px) and (max-width:1180px){.panel{width:330px}.toolbar{max-width:calc(100vw - 370px)}.toolbar button{font-size:11px;padding:7px 8px}}
+#reportPanel{max-height:245px;overflow:auto} .target-label:empty{display:none} @media(max-width:1500px){.notice{display:none!important}}
+
+/* v2.8.3: compact iPad panel; source and alert logic unchanged */
+.panel.compact{width:278px!important;padding:11px 12px!important;border-radius:14px}
+.panel.compact .place{font-size:19px}.panel.compact .place small{font-size:12px;margin-top:3px}
+.panel.compact .source-health{font-size:11px;margin-top:6px}
+.panel.compact .data-audit{font-size:11px;line-height:1.3;margin-top:5px;padding-top:5px}
+.panel.compact .status{padding:9px 10px;margin-top:9px;border-radius:12px}
+.panel.compact .status h2{font-size:17px}.panel.compact .status p,.panel.compact .details{font-size:12px;line-height:1.3}
+.panel.compact .distance{font-size:29px;margin:6px 0}.panel.compact .movement{font-size:12px;padding:6px 8px}
+.panel.compact .counts{gap:5px;margin-top:7px}.panel.compact .count{padding:5px 2px}.panel.compact .count b{font-size:21px}.panel.compact .count span{font-size:10px}
+.panel.compact #reportPanel{max-height:145px;padding:7px!important;margin-top:7px!important;font-size:11px}
+.panel.compact #reportList{font-size:11px!important}.panel.compact #sound{margin-top:6px;padding:7px}
+.panel.compact #updated{font-size:10px;margin-top:5px}
+.panel-heading .panel-actions{display:flex;gap:4px;flex-shrink:0}.panel-heading .panel-actions button{font-size:11px;padding:6px 7px}
+.panel.compact.collapsed{width:260px!important}
+@media(max-width:650px){.panel.compact{width:278px!important;max-width:calc(100vw - 16px)}}
+
+/* v3.0: журнал, контроль джерел, день/ніч, iPad */
+.v29-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.v29-controls button{width:auto;margin:0;padding:7px 9px;font-size:12px;cursor:pointer}
+.v29-controls button.active{background:#276292;border-color:#85baf2}.v29-box{margin-top:9px;padding:10px;border:1px solid #475569;border-radius:10px;background:#111c2b;font-size:12px;line-height:1.5}.v29-box[hidden]{display:none!important}
+.v29-source{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #2b3a4c}.v29-source:last-child{border-bottom:0}.v29-warn{color:#ffd180}.v29-good{color:#7de0a4}.v29-bad{color:#ff9393}
+.v29-journal{max-height:235px;overflow-y:auto;overscroll-behavior:contain}.v29-entry{padding:6px 0;border-top:1px solid #304156}.v29-entry:first-child{border-top:0}.v29-filter{display:flex;gap:6px;align-items:center;margin:6px 0}.v29-filter select{background:#203149;color:#fff;border:1px solid #586b84;border-radius:6px;padding:5px}
+body.day-mode{background:#d8e2ec;color:#1b2734}body.day-mode header,body.day-mode footer{background:#e9f0f7;color:#213349;border-color:#aab9ca}body.day-mode .sub,body.day-mode .date{color:#516477}body.day-mode .leaflet-tile{filter:brightness(1.05) saturate(.95) contrast(1)}body.day-mode .panel,body.day-mode .alert-state,body.day-mode .oblast-state,body.day-mode .layer-menu,body.day-mode .legend{background:rgba(235,242,249,.96);color:#172a3c;border-color:#a1b2c5}body.day-mode .place small,body.day-mode .data-audit,body.day-mode .source-health,body.day-mode #updated{color:#3e566d}body.day-mode .v29-box,body.day-mode #reportPanel{background:#dce8f3!important;color:#20364b;border-color:#a3b6c9}body.day-mode .v29-source,body.day-mode .v29-entry{border-color:#adbfce}body.day-mode .v29-warn{color:#865900}body.day-mode .v29-good{color:#11613b}body.day-mode .v29-bad{color:#a32b2b}body.day-mode .count{background:#d6e3ee;color:#1c3348}body.day-mode .count span{color:#405b71}body.day-mode .target-label,body.day-mode .cluster-label{background:rgba(232,241,249,.94);color:#172a3c}body.day-mode .legend .approx-key{color:#a45a0b}
+@media(max-width:800px){.v29-controls button{padding:6px;font-size:11px}.v29-journal{max-height:165px}}
+#v30Region[hidden]{display:none!important}body.day-mode #v30Region{background:#dce8f3;color:#20364b}body.day-mode .leaflet-tile{filter:none}
+
+/* v3.1: iPad panel scrolling, clearer source qualification */
+.panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+@media(min-width:651px){.panel{max-height:calc(100dvh - 170px);overflow-y:auto}}
+@media(max-width:650px){.panel{max-height:calc(100dvh - 335px);overflow-y:auto}}
+.panel.collapsed .v29-controls,.panel.collapsed .v29-box,.panel.collapsed .source-health,.panel.collapsed .data-audit,.panel.collapsed #reportPanel{display:none!important}
+.v31-explain{margin-top:8px;padding:9px;border:1px solid #7d6841;border-radius:9px;background:#302b20;color:#ffe2a4;font-size:12px;line-height:1.4}
+body.day-mode .v31-explain{background:#fff3d6;color:#6c4b0e}
+.v33-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.v33-tabs button{width:auto;margin:0;padding:6px 9px;font-size:11px}.v33-tabs button[aria-pressed="true"]{background:#28629b;border-color:#9cc9f4}.v33-summary{font-size:11px;color:#b7c9db;margin:8px 0}.v29-journal{max-height:270px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.v33-meta{font-size:11px;color:#9fb1c5;margin-top:3px}body.day-mode .v33-summary,body.day-mode .v33-meta{color:#3b536b}
+
+/* v3.4: покращення читабельності та навігації, без зміни відстеження цілей */
+footer a{color:#8cc7ff;text-decoration:underline;text-underline-offset:2px}
+.panel.journal-wide:not(.compact){width:min(510px,calc(100vw - 24px))}
+.panel.journal-wide .v29-journal{max-height:min(43dvh,430px)}
+.panel.journal-wide .v33-meta{line-height:1.6}
+#v30Region{border-color:#617b98;padding:8px 10px;margin-top:7px;line-height:1.4;font-size:12px}
+body.day-mode #v30Region{background:#dce8f3;color:#20364b}
+@media(max-width:650px){.panel.journal-wide:not(.compact){width:calc(100vw - 16px)}}
+/* v3.5.5: повідомлення джерел та вимірювання відстані */
+#possibleZones{margin-top:8px;padding:9px;border:1px solid #6e6346;border-radius:9px;background:#2b291f;color:#ffe0a0;font-size:12px;line-height:1.5}
+#measureInfo{margin-top:8px;padding:9px;border:1px solid #52708a;border-radius:9px;background:#17283a;color:#cbe5ff;font-size:12px;line-height:1.45}
+body.day-mode #possibleZones{background:#fff4d8;color:#60460c}body.day-mode #measureInfo{background:#dceaf9;color:#163c5b}
+
+/* v3.5.7: коротка панель, повний журнал за запитом */
+#mainPanel #v356More:not([open]) #reportPanel{display:none!important}
+#mainPanel .status{margin:6px 0!important}
+#mainPanel .status p{display:none!important}
+#mainPanel .counts{gap:5px!important}
+#mainPanel .count{min-width:0!important}
+#mainPanel #v357Overview{background:#111c2b;border:1px solid #42536a;border-radius:9px;padding:10px;margin:7px 0;font-size:12px;line-height:1.45}
+#mainPanel #v357Overview b{font-size:13px}
+#mainPanel #v357Overview .muted{color:#a9bbd0;font-size:11px;margin-top:3px}
+#mainPanel #v356More{margin-top:5px}
+#mainPanel #v356More>summary{display:block;list-style:none;counter-increment:none}
+#mainPanel #v356More>summary::-webkit-details-marker{display:none}
+#mainPanel #v356More>summary:before{content:'▸ ';}
+#mainPanel #v356More[open]>summary:before{content:'▾ ';}
+
+#mainPanel{width:min(350px,calc(100vw - 24px));max-height:calc(100dvh - 225px);overflow-y:auto;padding:12px!important}
+#mainPanel .panel-heading{margin-bottom:8px}
+#mainPanel .v29-controls{gap:5px;flex-wrap:wrap;margin-bottom:7px}
+#mainPanel .v29-controls button{font-size:12px;padding:7px 9px}
+#mainPanel .status{padding:9px!important;margin:7px 0!important}
+#mainPanel .status h2{font-size:14px!important;line-height:1.3!important;margin:0 0 5px!important}
+#mainPanel .status p{font-size:12px!important;line-height:1.35!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0!important}
+#mainPanel .status .movement,#mainPanel .status .details{display:none!important}
+#mainPanel .counts{margin:7px 0!important}
+#mainPanel .count{padding:8px 3px!important}
+#mainPanel .count b{font-size:23px!important}
+#mainPanel #reportPanel{padding:8px!important;margin-top:7px!important}
+#mainPanel #reportPanel #reportList{font-size:12px!important;line-height:1.4!important;max-height:76px;overflow:hidden}
+#mainPanel #sound{padding:8px!important;margin:7px 0!important}
+#mainPanel #updated{font-size:11px!important}
+#v356More{margin-top:8px;border:1px solid #4c6075;border-radius:9px;padding:0 8px;background:rgba(17,29,44,.85)}
+#v356More>summary{cursor:pointer;list-style:auto;padding:10px 2px;font-size:12px;font-weight:700;color:#d6e7fa}
+#v356More[open]{padding-bottom:8px}
+#v356More .v31-explain,#v356More #possibleZones,#v356More #measureInfo,#v356More #dataAudit,#v356More #v30Region,#v356More #sourceHealth{font-size:11px;line-height:1.4;padding:7px;margin:6px 0}
+#v356More #fullThreatText{font-size:12px;line-height:1.4;color:#c6d9ed;overflow-wrap:anywhere}
+body.day-mode #v356More{background:#e7eef5}body.day-mode #v356More>summary{color:#1b3958}body.day-mode #v356More #fullThreatText{color:#29455d}
+@media(max-width:650px){#mainPanel{max-height:calc(100dvh - 320px)}}
+#civilWarning{margin:8px 0;padding:10px;border:1px solid #a77f44;border-radius:10px;background:#30291e;color:#ffe5af;font-size:12px;line-height:1.5}body.day-mode #civilWarning{background:#fff1d4;color:#5e420d}#civilWarning b{display:block;font-size:13px;margin-bottom:3px}
+</style>
+<style>#mainPanel #reportPanel{display:block}#mainPanel #v357Overview{margin:8px 0}#mainPanel .v31-explain{display:none}#mainPanel .data-audit{display:none}#mainPanel #possibleZones{display:none}#mainPanel #measureInfo{display:none}#mainPanel #sourceHealth{display:none}</style></head>
+<body>
+<header><div><h1>Доброслав — повітряна обстановка</h1><div class="sub">Локальний інформаційний монітор</div></div><div class="clock"><div id="clock"></div><div class="date" id="date"></div></div></header>
+<div id="map"></div>
+<div class="notice">NEPTUN — неофіційні повідомлення. alerts.in.ua — обласні статуси; дотримуйтеся офіційного оповіщення.</div>
+<div class="toolbar"><button id="viewDobro" class="selected">Доброслав</button><button id="viewUa">Україна</button><button id="toggleTargets">Цілі: увімкнено</button><button id="toggleAlerts">Тривоги: увімкнено</button><button id="layersButton" aria-expanded="false">Шари ⚙</button><button id="baseMapButton" type="button">Супутник</button></div><div id="alertState" class="alert-state">alerts.in.ua: перевіряємо джерело…</div><div id="oblastState" class="oblast-state unknown" role="status">Одеська область (не статус громади): перевіряємо…</div><div id="layerMenu" class="layer-menu" hidden><b>Налаштування карти</b><label><input type="checkbox" id="showApprox" checked>Орієнтовні райони</label><label><input type="checkbox" id="showRings" checked>Кола 20 / 50 / 100 км</label><label><input type="checkbox" id="showLabels" checked>Підписи цілей</label><label><input type="checkbox" id="showRegionInfo" checked>Інформація про область</label></div><section class="panel" id="mainPanel">
+ <div class="panel-heading"><div class="place"><span class="dot" id="dot"></span>Доброслав<small>Одеський район · Одеська область</small></div><div class="panel-actions"><button id="compactPanel" aria-pressed="false" title="Компактний режим панелі">Компактно</button><button id="collapsePanel" aria-expanded="true" aria-label="Згорнути панель">Згорнути</button></div></div><div class="v29-controls"><button id="v29Mode" type="button">День</button><button id="v29JournalBtn" type="button" aria-expanded="false">Журнал</button><button id="v29SourcesBtn" type="button" aria-expanded="false">Джерела</button><button id="v34Home" type="button">Головна ↑</button></div><div id="v29Sources" class="v29-box" hidden role="status">Перевіряємо джерела…</div><div id="v29Journal" class="v29-box" hidden><b>Журнал NEPTUN (лише на цьому пристрої)</b><div class="v29-filter"><label for="v29Window">Період:</label><select id="v29Window"><option value="15">15 хв</option><option value="30">30 хв</option><option value="60" selected>60 хв</option></select><button id="v29Clear" type="button" style="width:auto;margin:0;padding:5px 8px">Очистити</button></div><div class="v33-tabs" role="group" aria-label="Фільтр журналу"><button type="button" data-filter="all" aria-pressed="true">Усі</button><button type="button" data-filter="point" aria-pressed="false">Точкові</button><button type="button" data-filter="approx" aria-pressed="false">Орієнтовні</button></div><div id="v33Summary" class="v33-summary"></div><div id="v29JournalList" class="v29-journal">Повідомлень поки немає.</div></div><div id="v30Region" class="v29-box" role="status">Область: очікуємо статус. Доброславська громада: окремий статус не підключено.</div><div class="source-health" id="sourceHealth" role="status">NEPTUN: очікуємо відповідь</div><div class="v31-explain" id="v31Explain" role="status">Позначки відображаються лише за наявності координат. Орієнтовні координати не означають підтверджене місцеположення. Відсутність позначок не означає відсутність загрози.</div><div id="possibleZones" role="status">Повідомлення про можливі загрози: очікуємо дані. Відсутність даних не означає відсутність загрози.</div><div id="measureInfo" role="status">Відстань від Доброслава: натисніть будь-яку точку карти для вимірювання.</div><div class="data-audit" id="dataAudit" role="status">Перевіряємо час і якість повідомлень…</div>
+ <div class="status" id="status"><h2 id="title">ЗАВАНТАЖЕННЯ ДАНИХ…</h2><p id="text">Очікуємо дані NEPTUN.</p><div class="distance" id="distance"></div><div class="movement" id="movement">—</div><div class="details" id="details"></div></div>
+ <div class="counts"><div class="count"><b id="count20">—</b><span>точкові · 20 км</span></div><div class="count"><b id="count50">—</b><span>точкові · 50 км</span></div><div class="count"><b id="count100">—</b><span>точкові · 100 км</span></div></div><div id="civilWarning" role="status" aria-live="polite">Очікуємо повідомлення про можливі загрози.</div>
+ <div id="v357Overview" role="status"><b>Повідомлення NEPTUN: очікуємо…</b><div class="muted">Позначки на карті: очікуємо дані</div></div><details id="reportPanel" style="margin-top:12px;border:1px solid #475569;border-radius:10px;padding:10px;background:#111c2b"><summary><b>Повідомлення NEPTUN · підтверджені й орієнтовні</b></summary><div id="reportList" style="margin-top:8px;font-size:13px;line-height:1.5;color:#d9e3ee">Очікуємо дані…</div></details><button id="sound">Увімкнути звук</button><div id="updated">Дані ще не отримані</div>
+</section>
+<div class="legend"><span>◉ точкова позиція за даними джерела</span><span class="approx-key">◌ орієнтовний район</span><span>число = група цілей</span></div>
+<footer>Версія 3.5.9 · <a href="https://neptun.in.ua/" target="_blank" rel="noopener noreferrer">NEPTUN</a> — неофіційні повідомлення · <a href="https://alerts.in.ua/" target="_blank" rel="noopener noreferrer">alerts.in.ua</a> — статус області · Офіційне оповіщення має пріоритет</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+const DOBROSLAV_LAT=46.82,DOBROSLAV_LON=30.94;
+const history=new Map();let audioEnabled=false,lastAlertZone="safe",lastThreats=[];let seenReportIds=new Set(),reportsInitialized=false;const $=id=>document.getElementById(id);
+const map=L.map('map',{zoomControl:true,attributionControl:true}).setView([DOBROSLAV_LAT,DOBROSLAV_LON],8);
+const streetTiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(map);
+const satelliteTiles=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles © Esri and contributors'});
+let satelliteMode=false;
+const rings=[L.circle([DOBROSLAV_LAT,DOBROSLAV_LON],{radius:100000,color:'#e2c34b',weight:2,fill:false,opacity:.72}).addTo(map),
+L.circle([DOBROSLAV_LAT,DOBROSLAV_LON],{radius:50000,color:'#ff9500',weight:2,fill:false,opacity:.82}).addTo(map),
+L.circle([DOBROSLAV_LAT,DOBROSLAV_LON],{radius:20000,color:'#ff3b3b',weight:2,fill:false,opacity:.9}).addTo(map)];
+L.marker([DOBROSLAV_LAT,DOBROSLAV_LON],{zIndexOffset:1000,icon:L.divIcon({className:'',html:'<div class="dobro-wrap"><div class="dobro-icon"></div><div class="dobro-label">Доброслав</div></div>',iconSize:[110,34],iconAnchor:[8,14]})}).addTo(map).bindPopup('<b>Доброслав</b>');
+const measureLayer=L.layerGroup().addTo(map);
+map.on('click',e=>{
+ const km=distanceKm(DOBROSLAV_LAT,DOBROSLAV_LON,e.latlng.lat,e.latlng.lng);
+ const zone=km<=20?'у межах 20 км':km<=50?'у межах 50 км':km<=100?'у межах 100 км':'поза 100 км';
+ $('measureInfo').textContent=`Вибрана точка: ${km.toFixed(1)} км від Доброслава (${zone}). Це вимірювання на карті, а не координати повітряної цілі.`;
+ measureLayer.clearLayers();
+ L.circleMarker(e.latlng,{radius:6,color:'#74c8ff',fillColor:'#74c8ff',fillOpacity:.7}).addTo(measureLayer);
+ L.polyline([[DOBROSLAV_LAT,DOBROSLAV_LON],e.latlng],{color:'#74c8ff',dashArray:'5 7',weight:2}).addTo(measureLayer);
+});
+const uncertaintyLayer=L.layerGroup().addTo(map);
+const trailLayer=L.layerGroup().addTo(map);
+const targetLayer=L.layerGroup().addTo(map);
+const ALERTS_URL='https://dobroslav-air-monitor-api.gw85rpjd2z.workers.dev/alerts';
+const OBLASTS=['Автономна Республіка Крим','Волинська область','Вінницька область','Дніпропетровська область','Донецька область','Житомирська область','Закарпатська область','Запорізька область','Івано-Франківська область','м. Київ','Київська область','Кіровоградська область','Луганська область','Львівська область','Миколаївська область','Одеська область','Полтавська область','Рівненська область','м. Севастополь','Сумська область','Тернопільська область','Харківська область','Херсонська область','Хмельницька область','Черкаська область','Чернівецька область','Чернігівська область'];
+const alertCodes=new Map();let alertsUpdatedAt=0,alertsRequestBusy=false;
+const normalizeRegion=x=>String(x||'').toLowerCase().replace(/^(область|oblast)\s+/,'').replace(/\s+(область|oblast)$/,'').replace(/[^a-zа-яіїєґ0-9]/g,'');
+const aliasRegions={'odesa':'одеська','odessa':'одеська','odesska':'одеська','kiev':'київська','kyiv':'київська','kievcity':'мкиїв','kyivcity':'мкиїв','crimea':'автономнареспублікакрим','crimean':'автономнареспублікакрим'};
+function regionName(f){const p=f.properties||{};return p.name_uk||p.name_ua||p.name||p.NAME_1||p.NAME||p.shapeName||p.region||''}
+function regionCode(f){let key=normalizeRegion(regionName(f));key=aliasRegions[key]||key;const idx=OBLASTS.findIndex(x=>normalizeRegion(x)===key);return idx>=0?alertCodes.get(idx):undefined}
+function alertText(c){return c==='A'?'Повітряна тривога в усій області':c==='P'?'Часткова тривога (окремі райони або громади)':c==='N'?'За обласним статусом тривогу не зафіксовано; перевіряйте місцеві сповіщення':'Немає перевірених даних'}
+const alertLayer=L.geoJSON(null,{style:f=>{const c=regionCode(f);return {color:c==='A'?'#ff6464':c==='P'?'#ffc36a':'#8191a7',weight:1.3,fillColor:c==='A'?'#e53935':c==='P'?'#ffab40':c==='N'?'#2b845a':'#778394',fillOpacity:c==='A'?.38:c==='P'?.30:c==='N'?.15:.08}},onEachFeature:(f,l)=>l.bindPopup(`<b>${safeText(regionName(f)||'Регіон')}</b><br>${alertText(regionCode(f))}<br><small>Джерело: alerts.in.ua · статус області, не рівень небезпеки</small>`)}).addTo(map);
+function setOblastState(code,msg){const e=$('oblastState');e.className='oblast-state '+(code==='A'?'active':code==='P'?'partial':code==='N'?'clear':'unknown');e.textContent='Одеська область (не статус Доброслава): '+(msg||alertText(code))}
+let targetsVisible=true,alertsVisible=true;
+let showApprox=true,showLabels=true;const prefsKey='dobroslav-monitor-prefs-v26';
+function readPrefs(){try{return JSON.parse(localStorage.getItem(prefsKey)||'{}')}catch(e){return {}}}
+function savePrefs(){try{localStorage.setItem(prefsKey,JSON.stringify({showApprox,showLabels,showRings:$('showRings').checked,collapsed:$('mainPanel').classList.contains('collapsed'),targetsVisible,alertsVisible}))}catch(e){}}
+const prefs=readPrefs();showApprox=prefs.showApprox!==false;showLabels=prefs.showLabels!==false;
+$('showApprox').checked=showApprox;$('showLabels').checked=showLabels;$('showRings').checked=prefs.showRings!==false;
+if(!$('showRings').checked)rings.forEach(x=>map.removeLayer(x));
+if(prefs.collapsed){$('mainPanel').classList.add('collapsed');$('collapsePanel').textContent='Розгорнути';$('collapsePanel').setAttribute('aria-expanded','false')}
+if(prefs.targetsVisible===false){targetsVisible=false;for(const layer of [targetLayer,trailLayer,uncertaintyLayer])map.removeLayer(layer);$('toggleTargets').textContent='Цілі: вимкнено'}
+if(prefs.alertsVisible===false){alertsVisible=false;map.removeLayer(alertLayer);$('toggleAlerts').textContent='Тривоги: вимкнено'}
+$('collapsePanel').onclick=()=>{const c=$('mainPanel').classList.toggle('collapsed');$('collapsePanel').textContent=c?'Розгорнути':'Згорнути';$('collapsePanel').setAttribute('aria-expanded',String(!c));savePrefs()};
+$('layersButton').onclick=()=>{const opened=$('layerMenu').hidden;$('layerMenu').hidden=!opened;$('layersButton').setAttribute('aria-expanded',String(opened))};
+$('showApprox').onchange=e=>{showApprox=e.target.checked;savePrefs();drawTargets(lastThreats)};
+$('showLabels').onchange=e=>{showLabels=e.target.checked;savePrefs();drawTargets(lastThreats)};
+$('showRings').onchange=e=>{rings.forEach(x=>e.target.checked?x.addTo(map):map.removeLayer(x));savePrefs()};
+let lastSuccessAt=0,lastPayloadSignature='',lastPayloadChangedAt=0,requestInFlight=false,consecutiveErrors=0;
+function clearStaleTargets(){
+ const warning=$('civilWarning');if(warning&&(!lastSuccessAt||Date.now()-lastSuccessAt>45000))warning.textContent='Актуальні повідомлення про можливі загрози недоступні. Перевіряйте офіційні сповіщення.';
+if(!lastSuccessAt||Date.now()-lastSuccessAt>45000){lastThreats=[];$("reportList").textContent="Дані NEPTUN застаріли — поточний список недоступний.";targetLayer.clearLayers();trailLayer.clearLayers();uncertaintyLayer.clearLayers();history.clear();for(const id of ['count20','count50','count100'])$(id).textContent='—';$("possibleZones").textContent="Можливі загрози: актуальні дані NEPTUN недоступні. Це не означає відсутність загрози.";$('title').textContent='НЕМАЄ АКТУАЛЬНИХ ДАНИХ';$('text').textContent='NEPTUN не оновлюється. Позначки приховано.';$('distance').textContent='';$('movement').textContent='Поточний рух невідомий';$('details').textContent='Перевірте офіційне оповіщення.';$('status').style.background='#29241e';$('status').style.borderColor='#a78b52';lastAlertZone='safe';$("dataAudit").textContent="Немає актуальної відповіді NEPTUN. Не використовуйте попередні позиції як поточні.";$('sourceHealth').setAttribute('aria-label','Дані NEPTUN недоступні або застарілі')}
+else if(lastThreats.length){const valid=lastThreats.filter(t=>{const age=freshness(t).age;return age!==null&&age<=15});if(valid.length!==lastThreats.length){lastThreats=valid;drawTargets(valid)}}
+}
+function updateHealth(){const el=$('sourceHealth');if(!lastSuccessAt){el.textContent='NEPTUN: немає підтвердженого з’єднання';el.style.color='#ff8a8a';return}const age=Math.round((Date.now()-lastSuccessAt)/1000),unchanged=Math.round((Date.now()-lastPayloadChangedAt)/60_000);if(age>45||consecutiveErrors>=3){el.textContent=`NEPTUN: немає зв’язку · остання відповідь ${age} с тому`;el.style.color='#ff8a8a'}else if(consecutiveErrors||age>25||unchanged>=10){el.textContent=`NEPTUN: затримка / дані без змін ${unchanged} хв`;el.style.color='#ffcf55'}else{el.textContent=`NEPTUN: з’єднання працює · відповідь ${age} с тому`;el.style.color='#70d99a'}}
+setInterval(()=>{updateHealth();clearStaleTargets()},5000);
+
+$('viewDobro').onclick=()=>{map.setView([DOBROSLAV_LAT,DOBROSLAV_LON],8);$('viewDobro').classList.add('selected');$('viewUa').classList.remove('selected')};
+$('viewUa').onclick=()=>{map.fitBounds([[44.1,22.0],[52.5,40.3]],{padding:[18,18]});$('viewUa').classList.add('selected');$('viewDobro').classList.remove('selected')};
+$('toggleTargets').onclick=()=>{targetsVisible=!targetsVisible;for(const layer of [targetLayer,trailLayer,uncertaintyLayer]){if(targetsVisible)layer.addTo(map);else map.removeLayer(layer)};$('toggleTargets').textContent='Цілі: '+(targetsVisible?'увімкнено':'вимкнено');savePrefs()};
+$('toggleAlerts').onclick=()=>{alertsVisible=!alertsVisible;if(alertsVisible)alertLayer.addTo(map);else map.removeLayer(alertLayer);$('toggleAlerts').textContent='Тривоги: '+(alertsVisible?'увімкнено':'вимкнено');savePrefs()};
+async function loadBorders(){try{const r=await fetch('https://raw.githubusercontent.com/darmat1/ukraine-geo-data/main/geodata/Ukraine.geojson');if(!r.ok)throw Error(r.status);const g=await r.json();alertLayer.addData(g);if(!alertsUpdatedAt)$('alertState').textContent='Межі завантажено · отримуємо статуси alerts.in.ua…'}catch(e){$('alertState').textContent='Контури областей не завантажились; статус області показується окремо.'}}loadBorders();
+async function updateAlerts(){if(alertsRequestBusy)return;alertsRequestBusy=true;try{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);let response;try{response=await fetch(ALERTS_URL,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);response=await response.json()}finally{clearTimeout(timer)}
+const codes=typeof response.statuses==='string'?response.statuses:typeof response==='string'?response:null;
+if(!codes||codes.length!==OBLASTS.length||/[^APN]/.test(codes))throw Error('Некоректний формат статусів');
+alertCodes.clear();[...codes].forEach((c,i)=>alertCodes.set(i,c));alertsUpdatedAt=Date.now();alertLayer.setStyle(f=>{const c=regionCode(f);return {color:c==='A'?'#ff6464':c==='P'?'#ffc36a':'#8191a7',weight:1.3,fillColor:c==='A'?'#e53935':c==='P'?'#ffab40':c==='N'?'#2b845a':'#778394',fillOpacity:c==='A'?.38:c==='P'?.30:c==='N'?.15:.08}});
+alertLayer.eachLayer(l=>{if(l.feature)l.bindPopup(`<b>${safeText(regionName(l.feature)||'Регіон')}</b><br>${alertText(regionCode(l.feature))}<br><small>Джерело: alerts.in.ua · статус області, не рівень небезпеки</small>`)});
+const od=alertCodes.get(15);setOblastState(od);v30UpdateRegion(od);$('alertState').textContent=`alerts.in.ua · оновлено ${new Date().toLocaleTimeString('uk-UA')}`;
+}catch(e){alertCodes.clear();alertLayer.setStyle({color:'#8191a7',weight:1,fillColor:'#778394',fillOpacity:.08});$('alertState').textContent='alerts.in.ua: дані недоступні';setOblastState(null,'статус невідомий');v30UpdateRegion(null);}finally{alertsRequestBusy=false}}
+updateAlerts();setInterval(updateAlerts,60000);
+setInterval(()=>{if(alertsUpdatedAt&&Date.now()-alertsUpdatedAt>150000){$('alertState').textContent='alerts.in.ua: дані застарілі';setOblastState(null,'дані застарілі');v30UpdateRegion(null);alertCodes.clear();alertLayer.setStyle({color:'#8191a7',weight:1,fillColor:'#778394',fillOpacity:.08})}},15000);
+function distanceKm(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p,x=Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function direction(deg){const x=["північ","північний схід","схід","південний схід","південь","південний захід","захід","північний захід"];return x[Math.round((((deg%360)+360)%360)/45)%8]}
+function typeName(t){const s=String(t||"").toLowerCase();if(s.includes("reactive")||s.includes("jet")||s.includes("реактив"))return "Реактивний БпЛА";if(s.includes("shahed")||s.includes("geran"))return "БпЛА типу Shahed";if(s.includes("fpv"))return "FPV-дрон";if(s.includes("missile")||s.includes("rocket"))return "Ракетна ціль";if(s.includes("uav")||s.includes("drone"))return "БпЛА";return t||"Повітряна ціль"}
+function targetKind(t){const s=String(t.type||'').toLowerCase();const names=[['fpv',/^(fpv|fpv.drone|quadcopter)$/],['shahed',/^(shahed|geran|shahed.drone)$/],['ballistic',/^(ballistic|ballistic.missile)$/],['missile',/^(missile|rocket|cruise.missile)$/],['aircraft',/^(aircraft|plane)$/],['uav',/^(uav|drone|reactive.uav|jet.uav)$/]];const match=names.find(x=>x[1].test(s));return match?match[0]:'unknown'}
+function safeText(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function verifiedType(t){
+ const k=targetKind(t), confidence=String(t.confidenceLevel||'').toLowerCase();
+ // Тип FPV не вважаємо підтвердженим лише на підставі мітки агрегатора.
+ if(k==='fpv')return 'БпЛА (джерело позначило FPV; тип не підтверджено)';
+ if(k==='unknown')return 'Повітряна ціль (тип не підтверджено)';
+ return typeName(t.type);
+}
+function targetSvg(t,approx=false){const k=(targetKind(t)==="fpv"?"unknown":targetKind(t)),stroke=approx?"#ffb347":"#fff",fill=approx?"rgba(255,179,71,.18)":"rgba(255,255,255,.12)",common=`stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="${fill}"`;let body="";if(k==="fpv")body=`<g ${common}><path d="M8 8l12 12M20 8L8 20"/><circle cx="7" cy="7" r="4"/><circle cx="21" cy="7" r="4"/><circle cx="7" cy="21" r="4"/><circle cx="21" cy="21" r="4"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></g>`;else if(k==="shahed"||k==="uav")body=`<g ${common}><path d="M14 2l3.2 8.2L26 17l-9-1.7L14 26l-3-10.7L2 17l8.8-6.8L14 2z"/></g>`;else if(k==="missile"||k==="ballistic")body=`<g ${common}><path d="M14 2c4 4 5 9 4 15l-4 9-4-9c-1-6 0-11 4-15z"/><path d="M10 16l-5 5 5-1M18 16l5 5-5-1"/><circle cx="14" cy="10" r="2"/></g>`;else if(k==="aircraft")body=`<g ${common}><path d="M14 2l2 9 9 5v3l-9-2-1 8 3 2v1H10v-1l3-2-1-8-9 2v-3l9-5 2-9z"/></g>`;else body=`<g ${common}><path d="M14 3L26 25H2L14 3z"/></g>`;return `<svg viewBox="0 0 28 28" aria-hidden="true">${body}</svg>`}
+function targetKey(t){return t.id||t.uuid||t.threatId||`${t.type||"x"}:${t.title||""}`}
+function bearing(lat1,lon1,lat2,lon2){const p1=lat1*Math.PI/180,p2=lat2*Math.PI/180,dl=(lon2-lon1)*Math.PI/180;const y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return(Math.atan2(y,x)*180/Math.PI+360)%360}
+function movementInfo(t,km){const id=targetKey(t),now=Date.now(),cut=now-5*60*1000;let pts=history.get(id)||[];pts=pts.filter(p=>p.time>=cut);const last=pts[pts.length-1];if(!last||Math.abs(last.lat-t.lat)>1e-5||Math.abs(last.lon-t.lon)>1e-5)pts.push({km,lat:t.lat,lon:t.lon,time:now});history.set(id,pts);if(pts.length<3)return{state:"collecting",text:"Недостатньо спостережень для оцінки руху",bearing:null};const first=pts[0],latest=pts[pts.length-1],delta=latest.km-first.km,mins=Math.max(1,Math.round((latest.time-first.time)/60000)),b=bearing(first.lat,first.lon,latest.lat,latest.lon);let state="steady",text="→ ВІДСТАНЬ СТАБІЛЬНА";if(delta<=-2){state="approaching";text=`↓ НАБЛИЖАЄТЬСЯ · −${Math.abs(delta).toFixed(0)} км за ${mins} хв`}else if(delta>=2){state="leaving";text=`↑ ВІДДАЛЯЄТЬСЯ · +${Math.abs(delta).toFixed(0)} км за ${mins} хв`};return{state,text,bearing:b}}
+function beep(zone){if(!audioEnabled||zone===lastAlertZone)return;lastAlertZone=zone;if(zone==="safe"||zone==="100")return;try{const A=window.AudioContext||window.webkitAudioContext,ctx=new A(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=zone==="20"?880:660;g.gain.value=.09;o.start();setTimeout(()=>{o.stop();ctx.close()},zone==="20"?850:450)}catch(e){}}
+function notificationTone(){if(!audioEnabled)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const ctx=new A(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.value=600;gain.gain.value=.045;osc.connect(gain);gain.connect(ctx.destination);osc.start();setTimeout(()=>{osc.stop();ctx.close()},320)}catch(e){}}
+function notifyNewReports(items){const ids=new Set(items.map(t=>String(targetKey(t))+":"+String(targetTime(t)?.getTime()||"")));if(reportsInitialized&&[...ids].some(id=>!seenReportIds.has(id)))notificationTone();seenReportIds=ids;reportsInitialized=true;}
+$("sound").onclick=()=>{audioEnabled=!audioEnabled;$("sound").textContent=audioEnabled?"Звук увімкнено · нові повідомлення":"Увімкнути звук";if(audioEnabled)notificationTone()};
+function clock(){const d=new Date();$("clock").textContent=d.toLocaleTimeString("uk-UA");$("date").textContent=d.toLocaleDateString("uk-UA",{weekday:"short",day:"2-digit",month:"short"})}setInterval(clock,1000);clock();
+function quality(t){return String(t.positionQuality||t.quality||"").toLowerCase()}
+function uncertainty(t){const n=Number(t.uncertaintyKm??t.uncertainty_km??0);return Number.isFinite(n)&&n>0?n:0}
+function isPrecise(t){
+ const q=quality(t);
+ // Відсутність ознаки точності НЕ є підтвердженням точності.
+ return t.areaOnly!==true && (q==='precise'||q==='exact'||q==='point'||q==='gps'||q==='verified') && uncertainty(t)===0;
+}
+function confidenceUk(v){return String(v||"").toLowerCase().replace("high","висока").replace("medium","середня").replace("low","низька")}
+function targetTime(t){
+ const raw=t.updatedAt??t.updated_at??t.lastUpdate??t.last_update??t.timestamp??t.time??t.createdAt??t.created_at;
+ if(raw==null)return null;
+ const d=typeof raw==="number"?new Date(raw<1e12?raw*1000:raw):new Date(raw);
+ return Number.isNaN(d.getTime())?null:d;
+}
+function freshness(t){
+ const d=targetTime(t);if(!d)return{cls:"",text:"час цілі не вказаний",age:null};
+ const age=Math.max(0,(Date.now()-d.getTime())/60000);
+ if(age<=5)return{cls:"fresh",text:`свіжі дані · ${Math.max(0,Math.round(age))} хв`,age};
+ if(age<=15)return{cls:"aging",text:`дані ${Math.round(age)} хв тому`,age};
+ return{cls:"stale",text:`застарілі дані · ${Math.round(age)} хв`,age};
+}
+function bearingFromDobro(t){return bearing(DOBROSLAV_LAT,DOBROSLAV_LON,t.lat,t.lon)}
+function relativeText(t){const b=bearingFromDobro(t);return `${direction(b)} від Доброслава`}
+function towardDobro(t){
+ const pts=history.get(targetKey(t))||[];if(!isPrecise(t)||pts.length<3)return null;
+ const a=pts[0],b=pts[pts.length-1],delta=b.km-a.km;
+ if(delta<=-2)return"рухається ближче до Доброслава";
+ if(delta>=2)return"рухається далі від Доброслава";
+ return"відстань до Доброслава істотно не змінилась";
+}
+function clusterPrecise(items){
+ const groups=[],px=52;
+ for(const item of items){
+  const pt=map.latLngToContainerPoint([item.t.lat,item.t.lon]);
+  let g=groups.find(x=>x.points.some(q=>pt.distanceTo(q)<px));
+  if(!g){g={items:[],points:[]};groups.push(g)}
+  g.items.push(item);g.points.push(pt);
+ }
+ return groups;
+}
+function clusterMarker(group){
+ const lat=group.items.reduce((a,x)=>a+x.t.lat,0)/group.items.length;
+ const lon=group.items.reduce((a,x)=>a+x.t.lon,0)/group.items.length;
+ const n=group.items.length;
+ const html=`<div style="position:relative;width:150px;height:42px"><div class="cluster-badge">${n}</div><div class="cluster-label">${n} ціл${n===1?"ь":n<5?"і":"ей"}</div></div>`;
+ const m=L.marker([lat,lon],{zIndexOffset:700,icon:L.divIcon({className:"",html,iconSize:[150,42],iconAnchor:[19,19]})}).addTo(targetLayer);
+ m.on("click",()=>{const bounds=L.latLngBounds(group.items.map(x=>[x.t.lat,x.t.lon]));map.fitBounds(bounds.pad(.7),{maxZoom:11})});
+ const lines=group.items.slice(0,8).map(x=>`${safeText(verifiedType(x.t))} · ${Math.round(x.km)} км`).join("<br>");
+ m.bindPopup(`<b>${n} близько розташованих цілей</b><br>${lines}${n>8?`<br>+ ще ${n-8}`:""}<br><small>Натисніть на групу, щоб наблизити.</small>`);
+}
+
+function drawTargets(threats){
+ targetLayer.clearLayers();trailLayer.clearLayers();uncertaintyLayer.clearLayers();
+ const preciseItems=[];let approximateDrawn=0;
+ threats.forEach(t=>{
+  if(typeof t.lat!=="number"||typeof t.lon!=="number")return;
+  const km=distanceKm(DOBROSLAV_LAT,DOBROSLAV_LON,t.lat,t.lon),u=uncertainty(t),precise=isPrecise(t),label=safeText(t.title||verifiedType(t)),fr=freshness(t);
+  if(!precise){if(!showApprox)return;approximateDrawn++;if(map.getZoom()<=7&&approximateDrawn>30)return;
+   if(u>0)L.circle([t.lat,t.lon],{radius:u*1000,color:'#ffb347',weight:2,dashArray:'7 7',fillColor:'#ffb347',fillOpacity:.10,opacity:.8}).addTo(uncertaintyLayer);
+   const txt=`${verifiedType(t)} · ${u?"орієнтовний район":"точність невідома"}${u?` ±${Math.round(u)} км`:""}`;
+   L.marker([t.lat,t.lon],{icon:L.divIcon({className:'',html:`<div class="target-wrap"><div class="target-icon approx">${targetSvg(t,true)}</div><div class="target-label">${showLabels&&map.getZoom()>=10?safeText(txt):""}</div></div>`,iconSize:[280,42],iconAnchor:[12,12]})}).addTo(targetLayer)
+    .bindPopup(`<b>${label}</b><br>Якість позиції: орієнтовна або не підтверджена${u?`<br>Невизначеність: до ${Math.round(u)} км`:''}<br>Достовірність повідомлення: ${confidenceUk(t.confidenceLevel)||"не вказана"}<br><span class="${fr.cls}">${fr.text}</span><br><b>Не трактувати як точне місцеположення цілі.</b>`);
+   return;
+  }
+  preciseItems.push({t,km,label,fr});
+  const pts=history.get(targetKey(t))||[];
+  if(pts.length>=3)L.polyline(pts.map(p=>[p.lat,p.lon]),{color:'#ffffff',weight:3,opacity:.62,dashArray:'7 7',lineCap:'round'}).addTo(trailLayer);
+ });
+ const overview=document.getElementById('v357Overview');
+ if(overview){const total=threats.filter(t=>Number.isFinite(t.lat)&&Number.isFinite(t.lon)).length;
+ overview.innerHTML='<b>Повідомлення про можливі загрози</b><div class="muted">Позначок із координатами джерела: '+(approximateDrawn+preciseItems.length)+' · орієнтовні: '+approximateDrawn+'. Натисніть на позначку для опису. Позиції не підтверджені незалежно.</div>';
+ }
+ const groups=clusterPrecise(preciseItems);
+ groups.forEach(g=>{
+  if(g.items.length>1 && map.getZoom()<=9){clusterMarker(g);return}
+  g.items.forEach(({t,km,label,fr})=>{
+   let extra=`<b>${label}</b><br>Тип: ${safeText(verifiedType(t))}<br>Відстань до Доброслава: ${Math.round(km)} км<br>Розташування: ${relativeText(t)}`;
+   if(t.heading!=null&&Number.isFinite(Number(t.heading)))extra+=`<br>Курс: ${Math.round(t.heading)}° → ${direction(t.heading)}`;
+   extra+=`<br>Якість позиції: точкова`;
+   if(t.confidenceLevel)extra+=`<br>Достовірність повідомлення: ${confidenceUk(t.confidenceLevel)}`;
+   const td=towardDobro(t);if(td)extra+=`<br>${td}`;
+   extra+=`<br><span class="${fr.cls}">${fr.text}</span>`;
+   const rot=t.heading!=null&&Number.isFinite(Number(t.heading))?Number(t.heading):0,shortLabel=`${verifiedType(t)} · ${Math.round(km)} км`;
+   L.marker([t.lat,t.lon],{icon:L.divIcon({className:'',html:`<div class="target-wrap"><div class="target-icon" style="transform:rotate(${rot}deg)">${targetSvg(t,false)}</div><div class="target-label">${showLabels?safeText(shortLabel):""}</div></div>`,iconSize:[220,42],iconAnchor:[12,12]})}).addTo(targetLayer).bindPopup(extra);
+  });
+ });
+}
+function renderReports(items){
+ const host=$('reportList');
+ if(!items.length){host.textContent='Немає повідомлень із зазначеним часом за останні 15 хвилин. Це не означає відсутність загрози.';return}
+ const sorted=[...items].sort((a,b)=>(targetTime(b)?.getTime()||0)-(targetTime(a)?.getTime()||0));
+ const summary=document.createElement('div');summary.textContent=`${items.length} повідомлень за 15 хв · точкові за оцінкою джерела: ${items.filter(isPrecise).length} · орієнтовні або невідомі: ${items.filter(t=>!isPrecise(t)).length}. Це кількість повідомлень, не підтверджена кількість об’єктів.`;
+ const list=document.createElement('div');list.style.cssText='max-height:220px;overflow:auto;margin-top:7px';
+ for(const t of sorted.slice(0,30)){
+  const row=document.createElement('div');row.style.cssText='border-top:1px solid #344052;padding:5px 0';
+  const kind=verifiedType(t),when=freshness(t).text;
+  const area=[t.region,t.oblast,t.district,t.area,t.locationName,t.settlement].find(v=>typeof v==='string'&&v.trim());
+  const place=area?` · район за повідомленням: ${area}`:'';
+  const qualityLabel=isPrecise(t)?'точкова позиція':Number.isFinite(t.lat)&&Number.isFinite(t.lon)?'координати приблизні/непідтверджені':'координат немає';
+  row.textContent=`${kind} · ${when} · ${qualityLabel}${place}`;list.appendChild(row)
+ }
+ if(sorted.length>30){const more=document.createElement('div');more.textContent=`Ще ${sorted.length-30} повідомлень не показано`;list.appendChild(more)}
+ host.replaceChildren(summary,list)
+}
+async function update(){if(requestInFlight)return;requestInFlight=true;try{const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);
+ let r,data;try{r=await fetch("https://neptun.in.ua/api/v1/threats",{cache:"no-store",signal:controller.signal});if(!r.ok)throw Error("HTTP "+r.status);data=await r.json()}finally{clearTimeout(timer)}if(!Array.isArray(data.threats))throw Error("Неправильний формат");lastSuccessAt=Date.now();consecutiveErrors=0;const signature=JSON.stringify(data.threats);if(signature!==lastPayloadSignature){lastPayloadSignature=signature;lastPayloadChangedAt=Date.now()}updateHealth();
+ const all=(Array.isArray(data.threats)?data.threats:[]).filter(t=>!t.status||t.status==="active");
+ const threats=all.filter(t=>Number.isFinite(t.lat)&&Number.isFinite(t.lon)&&isPrecise(t)&&freshness(t).age!==null&&freshness(t).age<=15);let nearest=null,c20=0,c50=0,c100=0;
+ for(const t of threats){const km=distanceKm(DOBROSLAV_LAT,DOBROSLAV_LON,t.lat,t.lon);movementInfo(t,km);if(km<=20)c20++;if(km<=50)c50++;if(km<=100)c100++;if(!nearest||km<nearest.km)nearest={t,km}}
+ const visible=all.filter(t=>{const age=freshness(t).age;return age!==null&&age<=15});lastThreats=visible;notifyNewReports(visible);drawTargets(visible);renderReports(visible);v29Ingest(visible);const geocoded=visible.filter(t=>Number.isFinite(t.lat)&&Number.isFinite(t.lon)).length;$("v31Explain").textContent=`NEPTUN: ${visible.length} актуальних повідомлень; ${geocoded} із координатами, ${visible.length-geocoded} без координат. Орієнтовні позначки не є підтвердженими позиціями. Якщо значків немає, це не означає відсутність загрози.`;
+  const approximateCount=visible.filter(t=>!Number.isFinite(t.lat)||!Number.isFinite(t.lon)||!isPrecise(t)).length;
+  const unverified=visible.filter(t=>!isPrecise(t));
+  const categories=[...new Set(unverified.map(verifiedType))].slice(0,3);
+  const warning=$('civilWarning');
+  warning.replaceChildren();
+  const heading=document.createElement('b');heading.textContent=unverified.length?`Можливі загрози: ${unverified.length} непідтверджених повідомлень`:'Непідтверджених повідомлень за 15 хв немає';
+  const note=document.createElement('span');note.textContent=unverified.length?`Типи за повідомленнями: ${categories.join(', ')}. Координати й відстані можуть бути неточними. Перевіряйте офіційні сповіщення.`:'Це не означає відсутність небезпеки. Орієнтуйтеся на офіційні сповіщення.';
+  warning.append(heading,note);
+  // Можливий перетин зони — лише коли джерело вказало координати І радіус невизначеності.
+  // Без радіуса неможливо обґрунтовано визначити потрапляння у коло.
+  const approxLocated=visible.filter(t=>!isPrecise(t)&&Number.isFinite(t.lat)&&Number.isFinite(t.lon));
+  const bounded=approxLocated.filter(t=>uncertainty(t)>0);
+  const possible=[20,50,100].map(radius=>bounded.filter(t=>distanceKm(DOBROSLAV_LAT,DOBROSLAV_LON,t.lat,t.lon)-uncertainty(t)<=radius).length);
+  const unbounded=visible.filter(t=>!isPrecise(t)&&(!Number.isFinite(t.lat)||!Number.isFinite(t.lon)||uncertainty(t)===0)).length;
+  $('possibleZones').textContent=`Орієнтовні повідомлення, що можуть стосуватися зон: до 20 км — ${possible[0]}, до 50 км — ${possible[1]}, до 100 км — ${possible[2]}. Без достатніх координат/радіуса невизначеності: ${unbounded}. Це НЕ підтверджена кількість цілей у зонах.`;
+  const missingTime=all.filter(t=>freshness(t).age===null).length;
+  const newest=visible.map(t=>freshness(t).age).filter(Number.isFinite);
+  const newestAge=newest.length?Math.min(...newest):null;
+  $("dataAudit").textContent=`Повідомлень із часом до 15 хв: ${visible.length}; точкові за оцінкою джерела: ${threats.length}; орієнтовні/невідомі: ${approximateCount}; без часу: ${missingTime}. Найновіше: ${newestAge===null?'немає':Math.round(newestAge)+' хв тому'}. Відповідь API ≠ підтвердження позиції.`;
+ $("count20").textContent=threats.length?c20:"—";$("count50").textContent=threats.length?c50:"—";$("count100").textContent=threats.length?c100:"—";let zone="safe";
+ if(!nearest){const approx=visible.filter(t=>!isPrecise(t));$("title").textContent=approx.length?"Є ОРІЄНТОВНІ ПОВІДОМЛЕННЯ":"Немає актуальних координатних даних";$("text").textContent=approx.length?`NEPTUN має ${approx.length} повідомлень без підтвердженої точності. Перегляньте список нижче; лічильники відстаней використовують лише точкові координати за оцінкою джерела. Можливий перетин зон орієнтовними повідомленнями показано окремо.`:"Немає актуальних точкових координат за оцінкою джерела. Це не означає відсутність загрози.";$("distance").textContent="";$("details").textContent=approx.length?"Орієнтовні координати показані умовно; кола невизначеності лише якщо їхній радіус вказало джерело.":"";$("movement").textContent="Напрямок руху не підтверджено; дивіться повідомлення нижче"}
+ else{const{t,km}=nearest,m=movementInfo(t,km);$("distance").textContent=Math.round(km)+" км";$("movement").textContent=m.text;$("movement").style.color=m.state==="approaching"?"#ffcf55":m.state==="leaving"?"#70d99a":"#c7d0dc";let info=verifiedType(t);const shownCourse=t.heading!=null&&Number.isFinite(Number(t.heading))?Number(t.heading):m.bearing;if(shownCourse!=null&&!Number.isNaN(shownCourse))info+=` · курс ${Math.round(shownCourse)}° → ${direction(shownCourse)}${t.heading==null?" (за рухом)":""}`;info+=` · ${relativeText(t)}`;if(t.confidenceLevel)info+=` · ${confidenceUk(t.confidenceLevel)} достовірність повідомлення`;const fr=freshness(t);info+=` · ${fr.text}`;$("details").textContent=info;if(km<=20)zone="20";else if(km<=50)zone="50";else if(km<=100)zone="100";$("title").textContent=zone==="20"?"ЦІЛЬ У ЗОНІ 20 КМ":zone==="50"?"ЦІЛЬ У ЗОНІ 50 КМ":zone==="100"?"ЦІЛЬ У ЗОНІ 100 КМ":"Поза зоною 100 км";$("text").textContent=zone==="100"?"Інформаційна зона спостереження.":"Найближча точкова позиція за оцінкою джерела; незалежно не підтверджена."}
+ const style={"20":["#42191b","#e34d53","#ff3b3b"],"50":["#503316","#d28a25","#ff9500"],"100":["#403b17","#c8ad36","#e2c34b"],safe:["#18211c","#315c3e","#49c774"]}[zone];$("status").style.background=style[0];$("status").style.borderColor=style[1];$("dot").style.background=style[2];$("dot").style.boxShadow=`0 0 12px ${style[2]}`;beep(zone);$("updated").textContent="Дані оновлено: "+new Date().toLocaleTimeString("uk-UA")
+ }catch(e){consecutiveErrors++;updateHealth();clearStaleTargets();$("title").textContent="Помилка отримання даних";$("text").textContent="Не вдалося оновити NEPTUN. Повторна спроба автоматично.";$("updated").textContent="Остання спроба: "+new Date().toLocaleTimeString("uk-UA");$("movement").textContent="Дані можуть бути застарілими";$("dataAudit").textContent="Помилка запиту. Перевіряйте офіційні повідомлення; дані про цілі можуть бути недоступні."}finally{requestInFlight=false}}
+map.on("zoomend",()=>{if(lastThreats.length&&Date.now()-lastSuccessAt<=45000)drawTargets(lastThreats)});update();setInterval(update,15000);
+
+
+// v2.9: локальний журнал без вигаданих історичних записів
+const v29JournalKey='dobroslav-journal-v29',v29ModeKey='dobroslav-mode-v29';
+let v29Entries=[];
+try{const saved=JSON.parse(localStorage.getItem(v29JournalKey)||'[]');if(Array.isArray(saved))v29Entries=saved.filter(e=>e&&typeof e.seen==='number'&&typeof e.label==='string').slice(-350)}catch(e){}
+function v29Save(){try{localStorage.setItem(v29JournalKey,JSON.stringify(v29Entries.slice(-350)))}catch(e){}}
+function v29Ingest(items){
+ const now=Date.now();let changed=false;
+ for(const t of items){const dt=targetTime(t),time=dt?.getTime();if(!time||time>now+60000||now-time>3600000)continue;
+ const key=String(targetKey(t)).slice(0,150)+':'+time;
+ if(v29Entries.some(e=>e.key===key))continue;
+ const region=[t.region,t.oblast,t.district,t.area,t.locationName,t.settlement].find(v=>typeof v==='string'&&v.trim());
+ v29Entries.push({key,seen:now,time,label:verifiedType(t),region:String(region||'Район не зазначено').slice(0,100),precision:isPrecise(t)?'точкова за даними джерела':'орієнтовна / невідома',isPoint:isPrecise(t),confidence:String(t.confidenceLevel||'не вказана').slice(0,40)});changed=true;
+ }
+ if(changed){v29Entries=v29Entries.filter(e=>now-e.seen<86400000).slice(-350);v29Save();v29RenderJournal()}
+}
+let v33Filter='all';
+function v33Confidence(v){const x=String(v||'').toLowerCase();return ({high:'висока',medium:'середня',low:'низька'})[x]|| (x==='не вказана'?'не вказана':String(v||'не вказана'))}
+function v29RenderJournal(){
+ const mins=Number($('v29Window').value),cut=Date.now()-mins*60000;
+ const entries=v29Entries.filter(e=>e.time>=cut&&e.time<=Date.now()+60000).sort((a,b)=>b.time-a.time).slice(0,80);
+ const point=e=>e.isPoint===true||(!('isPoint' in e)&&String(e.precision||'').startsWith('точкова'));
+ const points=entries.filter(point).length;
+ $('v33Summary').textContent=`Усього: ${entries.length} · точкові за даними джерела: ${points} · орієнтовні/невідомі: ${entries.length-points}. Це не незалежне підтвердження.`;
+ const shown=entries.filter(e=>v33Filter==='all'||(v33Filter==='point'?point(e):!point(e)));
+ const host=$('v29JournalList');host.replaceChildren();
+ if(!shown.length){host.textContent='За обраними фільтрами немає збережених повідомлень. Журнал працює лише коли сторінка відкрита.';return}
+ for(const e of shown){
+  const row=document.createElement('div');row.className='v29-entry';
+  const main=document.createElement('div');main.textContent=`${e.label} · ${e.region}`;
+  const meta=document.createElement('div');meta.className='v33-meta';
+  const reportTime=new Date(e.time).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+  const seenTime=new Date(e.seen).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+  meta.textContent=`Час повідомлення: ${reportTime} · отримано: ${seenTime} · ${e.precision} · оцінка джерела: ${v33Confidence(e.confidence)}`;
+  row.append(main,meta);host.appendChild(row)
+ }
+}
+document.querySelectorAll('.v33-tabs button').forEach(btn=>btn.addEventListener('click',()=>{
+ v33Filter=btn.dataset.filter;document.querySelectorAll('.v33-tabs button').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));v29RenderJournal();
+}));
+function v29Sources(){const now=Date.now();const neptunAge=lastSuccessAt?Math.round((now-lastSuccessAt)/1000):null,alertsAge=alertsUpdatedAt?Math.round((now-alertsUpdatedAt)/1000):null;
+ const h=$('v29Sources');h.replaceChildren();
+ const add=(name,age,limit)=>{const row=document.createElement('div');row.className='v29-source';const label=document.createElement('span');label.textContent=name;const value=document.createElement('span');value.className=age===null||age>limit?'v29-bad':age>limit/2?'v29-warn':'v29-good';value.textContent=age===null?'Немає відповіді':age>limit?`Застаріло · ${age} с`:`Відповідь ${age} с тому`;row.append(label,value);h.appendChild(row)};
+ add('NEPTUN · неофіційні повідомлення',neptunAge,45);add('alerts.in.ua · обласні статуси',alertsAge,150);const extra=document.createElement('div');extra.className='v29-source';extra.textContent='Megainet · не підключено (потрібна перевірка API та дозволів)';h.appendChild(extra);
+ const note=document.createElement('div');note.style.marginTop='7px';note.textContent='Відповідь сервера не підтверджує тип чи координати цілі. Статус області не є статусом Доброслава. Офіційне оповіщення має пріоритет.';h.appendChild(note)
+}
+function v29Toggle(which){const target=$(which),btn=$(which==='v29Journal'?'v29JournalBtn':'v29SourcesBtn'),open=target.hidden;target.hidden=!open;btn.classList.toggle('active',open);btn.setAttribute('aria-expanded',String(open));if(which==='v29Journal')$('mainPanel').classList.toggle('journal-wide',open);if(open){if(which==='v29Journal')v29RenderJournal();else v29Sources()}}
+$('v34Home').onclick=()=>{const p=$('mainPanel');if(!$('v29Journal').hidden)v29Toggle('v29Journal');if(!$('v29Sources').hidden)v29Toggle('v29Sources');if(p.classList.contains('collapsed'))$('collapsePanel').click();p.scrollTo({top:0,behavior:'smooth'});};$('v29JournalBtn').onclick=()=>v29Toggle('v29Journal');$('v29SourcesBtn').onclick=()=>v29Toggle('v29Sources');$('v29Window').onchange=v29RenderJournal;
+$('v29Clear').onclick=()=>{if(confirm('Очистити локальний журнал повідомлень на цьому пристрої?')){v29Entries=[];v29Save();v29RenderJournal()}};
+function v29SetMode(day){document.body.classList.toggle('day-mode',day);$('v29Mode').textContent=day?'Ніч':'День';$('v29Mode').setAttribute('aria-pressed',String(day));try{localStorage.setItem(v29ModeKey,day?'day':'night')}catch(e){}}
+let v29Day=false;try{v29Day=localStorage.getItem(v29ModeKey)==='day'}catch(e){}v29SetMode(v29Day);
+$('v29Mode').onclick=()=>v29SetMode(!document.body.classList.contains('day-mode'));
+setInterval(()=>{if(!$('v29Sources').hidden)v29Sources();if(!$('v29Journal').hidden)v29RenderJournal()},10000);
+
+// v2.8.3: optional compact view persisted on this device.
+const compactKey='dobroslav-monitor-compact-v283';
+function setCompact(enabled){
+ $('mainPanel').classList.toggle('compact',enabled);
+ $('compactPanel').textContent=enabled?'Звичайно':'Компактно';
+ $('compactPanel').setAttribute('aria-pressed',String(enabled));
+ try{localStorage.setItem(compactKey,enabled?'1':'0')}catch(e){}
+}
+let compactDefault=false;
+try{compactDefault=localStorage.getItem(compactKey)==='1'}catch(e){}
+setCompact(compactDefault);
+$('compactPanel').onclick=()=>setCompact(!$('mainPanel').classList.contains('compact'));
+
+// v3.0: картографічні шари та чесне відображення статусу джерел.
+function v30UpdateRegion(code){
+ const el=$('v30Region');if(!el)return;
+ const msg=code==='A'?'Тривога на рівні всієї Одеської області':code==='P'?'Тривога в частині Одеської області':code==='N'?'За обласним джерелом активної тривоги немає':'Немає актуального обласного статусу';
+ el.textContent='Область: '+msg+'. Доброславська громада: окремий статус не підключено. Орієнтуйтеся на офіційне оповіщення.';
+}
+$('baseMapButton').onclick=()=>{
+ satelliteMode=!satelliteMode;
+ if(satelliteMode){map.removeLayer(streetTiles);satelliteTiles.addTo(map)}else{map.removeLayer(satelliteTiles);streetTiles.addTo(map)}
+ $('baseMapButton').textContent=satelliteMode?'Звичайна карта':'Супутник';
+ try{localStorage.setItem('dobroslav-basemap-v30',satelliteMode?'sat':'street')}catch(e){}
+};
+try{if(localStorage.getItem('dobroslav-basemap-v30')==='sat')$('baseMapButton').click()}catch(e){}
+$('showRegionInfo').onchange=e=>{ $('v30Region').hidden=!e.target.checked;try{localStorage.setItem('dobroslav-region-v30',e.target.checked?'1':'0')}catch(err){} };
+try{if(localStorage.getItem('dobroslav-region-v30')==='0'){$('showRegionInfo').checked=false;$('v30Region').hidden=true}}catch(e){}
+
+// v3.5.6: переміщуємо довгі повідомлення до розділу «Детальніше», не видаляючи дані.
+(function(){
+ const panel=document.getElementById('mainPanel');
+ const more=document.createElement('details');more.id='v356More';
+ const summary=document.createElement('summary');summary.textContent='Детальніше: джерела, точність, вимірювання';more.appendChild(summary);
+ const full=document.createElement('div');full.id='fullThreatText';more.appendChild(full);
+ ['v30Region','sourceHealth','v31Explain','possibleZones','measureInfo','dataAudit'].forEach(id=>{const node=document.getElementById(id);if(node)more.appendChild(node)});
+ const status=panel.querySelector('#status');if(status){
+  const copy=document.createElement('div');copy.id='v356StatusExtra';
+  ['movement','details'].forEach(id=>{const node=document.getElementById(id);if(node)copy.appendChild(node.cloneNode(true))});
+  more.appendChild(copy);
+  const update=()=>{full.textContent=(document.getElementById('text')?.textContent||'');
+    ['movement','details'].forEach(id=>{const from=document.getElementById(id),to=copy.querySelector('#'+id);if(from&&to)to.textContent=from.textContent})};
+  new MutationObserver(update).observe(status,{subtree:true,childList:true,characterData:true});update();
+ }
+ const reports=document.getElementById('reportPanel');
+ if(reports){more.appendChild(reports);panel.appendChild(more)}else panel.appendChild(more);
+ // Старі налаштування «компактно» не повинні приховувати нову структуру.
+ panel.classList.remove('compact');
+ try{localStorage.setItem('dobroslav-monitor-compact-v283','0')}catch(e){}
+})();
+</script></body></html>
