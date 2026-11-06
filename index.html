@@ -237,12 +237,30 @@ body.day-mode .target-label{background:rgba(16,31,48,.94);color:#fff;border-colo
 @media(max-width:800px){.toolbar #ukraineAlarmLink5816{font-size:11px;padding:7px 9px;min-height:34px}}
 @media(max-width:650px){#mainPanel #community381 iframe{height:140px!important}}
 </style>
+<style id="communityIntegration32Style">
+.toolbar #communityOpen32{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;white-space:nowrap;min-height:36px;padding:8px 11px;border:1px solid #65b9a2;border-radius:10px;background:#16483f;color:#fff;font-size:12px;font-weight:750;text-decoration:none;line-height:1.15}
+.toolbar #communityOpen32:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#communityDialog32{box-sizing:border-box;width:min(1140px,calc(100vw - 24px));height:min(900px,calc(100dvh - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);padding:0;border:1px solid #60718a;border-radius:16px;background:#f1f5f9;color:#183047;box-shadow:0 20px 70px #0008;overflow:hidden}
+#communityDialog32::backdrop{background:rgba(5,10,18,.75)}
+#communityDialog32 .community-shell32{display:flex;flex-direction:column;height:100%;min-height:0}
+#communityDialog32 .community-head32{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:12px 14px;background:#123d60;color:white;flex:none}
+#communityDialog32 .community-head32 h2{margin:0;font:700 18px/1.3 system-ui,sans-serif;color:white}
+#communityDialog32 .community-actions32{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#communityDialog32 .community-actions32 a,#communityDialog32 .community-actions32 button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:auto;margin:0;min-height:44px;padding:9px 12px;border:1px solid #aec5d4;border-radius:9px;background:#1d5774;color:white;text-decoration:none;font:600 14px/1.3 system-ui,sans-serif;cursor:pointer}
+#communityDialog32 .community-actions32 :focus-visible{outline:2px solid white;outline-offset:2px}
+#communityDialog32 .community-note32{margin:0;padding:8px 14px;background:#fff8e6;color:#604b21;font:14px/1.4 system-ui,sans-serif;flex:none}
+#communityDialog32 #communityLoad32{margin:0;padding:7px 14px;color:#526b7b;font:14px/1.4 system-ui,sans-serif;flex:none}
+#communityDialog32 #communityLoad32[hidden]{display:none}
+#communityDialog32 iframe{display:block;flex:1 1 0;width:100%;height:100%;min-height:0;border:0;background:#f1f5f9}
+@media(max-width:800px){.toolbar #communityOpen32{font-size:11px;padding:7px 9px;min-height:34px}}
+@media(max-width:650px){.toolbar #communityOpen32{font-size:10px;padding:6px;min-height:30px}#communityDialog32{width:100%;max-width:100%;height:100dvh;max-height:100dvh;margin:0;border-radius:0;border:0}#communityDialog32 .community-head32{padding:calc(9px + env(safe-area-inset-top)) 10px 9px}#communityDialog32 .community-head32 h2{font-size:16px}#communityDialog32 .community-actions32{width:100%}#communityDialog32 .community-actions32 a{flex:1}#communityDialog32 .community-note32{font-size:12px}#communityDialog32 iframe{padding-bottom:env(safe-area-inset-bottom)}}
+</style>
 </head>
 <body>
 <header><div><h1>Доброслав — повітряна обстановка</h1><div class="sub">Локальний інформаційний монітор</div></div><div class="clock"><div id="clock"></div><div class="date" id="date"></div></div></header>
 <div id="map"></div>
 <div class="notice">UkraineAlarm — місцеві статуси й повідомлення; alerts.in.ua — обласні статуси. Офіційне оповіщення має пріоритет.</div>
-<div class="toolbar"><button id="powerOpen5815" type="button" aria-haspopup="dialog" aria-controls="powerDialog5815" aria-expanded="false">💡 Графік світла</button><button id="viewDobro" class="selected">Доброслав</button><button id="viewUa">Україна</button><button id="toggleTargets">Цілі: увімкнено</button><button id="toggleAlerts">Тривоги: увімкнено</button><button id="layersButton" aria-expanded="false">Шари ⚙</button><button id="baseMapButton" type="button">Супутник</button><button id="refreshData580" type="button">Оновити зараз</button><button id="refreshApp" type="button" title="Перевірити версію на сервері та перезавантажити сторінку">↻ Версія</button><a id="ukraineAlarmLink5816" href="https://map.ukrainealarm.com/" target="_blank" rel="noopener noreferrer" aria-label="Відкрити карту UkraineAlarm у новій вкладці" title="Карта повітряних тривог UkraineAlarm">🔔 UkraineAlarm ↗</a><a id="mapaUaLink" href="https://mapa.ua/" target="_blank" rel="noopener noreferrer" aria-label="Відкрити зовнішню карту MAPA.UA в новій вкладці" title="Незалежна карта MAPA.UA — відкрити в новій вкладці">MAPA.UA ↗</a></div><div id="alertState" class="alert-state">alerts.in.ua: перевіряємо джерело…</div><div id="oblastState" class="oblast-state unknown" role="status">Одеська область (не статус громади): перевіряємо…</div><div id="layerMenu" class="layer-menu" hidden><b>Налаштування карти</b><label><input type="checkbox" id="showApprox" checked>Орієнтовні райони</label><label><input type="checkbox" id="showRings" checked>Кола 20 / 50 / 100 км</label><label><input type="checkbox" id="showLabels" checked>Підписи цілей</label><label><input type="checkbox" id="showRegionInfo" checked>Інформація про область</label></div><section class="panel" id="mainPanel">
+<div class="toolbar"><button id="powerOpen5815" type="button" aria-haspopup="dialog" aria-controls="powerDialog5815" aria-expanded="false">💡 Графік світла</button><a id="communityOpen32" href="https://dobroslav-community-test.gw85rpjd2z.workers.dev/" target="_blank" rel="noopener noreferrer" aria-haspopup="dialog" aria-controls="communityDialog32" aria-expanded="false" title="Повідомити про комунальну проблему або переглянути звернення громади">🏘 Проблеми громади</a><button id="viewDobro" class="selected">Доброслав</button><button id="viewUa">Україна</button><button id="toggleTargets">Цілі: увімкнено</button><button id="toggleAlerts">Тривоги: увімкнено</button><button id="layersButton" aria-expanded="false">Шари ⚙</button><button id="baseMapButton" type="button">Супутник</button><button id="refreshData580" type="button">Оновити зараз</button><button id="refreshApp" type="button" title="Перевірити версію на сервері та перезавантажити сторінку">↻ Версія</button><a id="ukraineAlarmLink5816" href="https://map.ukrainealarm.com/" target="_blank" rel="noopener noreferrer" aria-label="Відкрити карту UkraineAlarm у новій вкладці" title="Карта повітряних тривог UkraineAlarm">🔔 UkraineAlarm ↗</a><a id="mapaUaLink" href="https://mapa.ua/" target="_blank" rel="noopener noreferrer" aria-label="Відкрити зовнішню карту MAPA.UA в новій вкладці" title="Незалежна карта MAPA.UA — відкрити в новій вкладці">MAPA.UA ↗</a></div><div id="alertState" class="alert-state">alerts.in.ua: перевіряємо джерело…</div><div id="oblastState" class="oblast-state unknown" role="status">Одеська область (не статус громади): перевіряємо…</div><div id="layerMenu" class="layer-menu" hidden><b>Налаштування карти</b><label><input type="checkbox" id="showApprox" checked>Орієнтовні райони</label><label><input type="checkbox" id="showRings" checked>Кола 20 / 50 / 100 км</label><label><input type="checkbox" id="showLabels" checked>Підписи цілей</label><label><input type="checkbox" id="showRegionInfo" checked>Інформація про область</label></div><section class="panel" id="mainPanel">
 <details id="community381" open><summary>Повітряна тривога · Доброславська громада</summary><p>Окремий віджет громади (код 959). Дані надає alerts.na-agency.com. Якщо віджет недоступний, перевіряйте офіційні канали оповіщення.</p><iframe src="https://alerts.na-agency.com/widget?region=959&amp;type=card" width="360" height="200" title="Повітряна тривога Доброславська громада" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe><p><a href="https://alerts.na-agency.com/region/959-dobroslavska-terytorialna-hromada" target="_blank" rel="noopener noreferrer">Відкрити стан громади на сайті джерела ↗</a></p><p>Цей віджет показує інформацію, але не запускає звукову сирену карти. Для звуку потрібне окреме перевірене джерело даних.</p></details>
  <div class="panel-heading"><div class="place"><span class="dot" id="dot"></span>Доброслав<small>Одеський район · Одеська область</small></div><div class="panel-actions"><button id="compactPanel" aria-pressed="false" title="Компактний режим панелі">Компактно</button><button id="collapsePanel" aria-expanded="true" aria-label="Згорнути панель">Згорнути</button></div></div><div class="v29-controls"><button id="v29Mode" type="button">День</button><button id="v29JournalBtn" type="button" aria-expanded="false">Журнал</button><button id="v29SourcesBtn" type="button" aria-expanded="false">Джерела</button><button id="v34Home" type="button">Головна ↑</button></div><div id="v29Sources" class="v29-box" hidden role="status">Перевіряємо джерела…</div><div id="v29Journal" class="v29-box" hidden><b>Журнал NEPTUN (лише на цьому пристрої)</b><div class="v29-filter"><label for="v29Window">Період:</label><select id="v29Window"><option value="15">15 хв</option><option value="30">30 хв</option><option value="60" selected>60 хв</option></select><button id="v29Clear" type="button" style="width:auto;margin:0;padding:5px 8px">Очистити</button></div><div class="v33-tabs" role="group" aria-label="Фільтр журналу"><button type="button" data-filter="all" aria-pressed="true">Усі</button><button type="button" data-filter="point" aria-pressed="false">Точкові</button><button type="button" data-filter="approx" aria-pressed="false">Орієнтовні</button></div><div id="v33Summary" class="v33-summary"></div><div id="v29JournalList" class="v29-journal">Повідомлень поки немає.</div></div><div id="v30Region" class="v29-box" role="status">AlarmMap: перевіряємо місцеві статуси…</div><div class="source-health" id="sourceHealth" role="status">NEPTUN: очікуємо відповідь</div><div class="v31-explain" id="v31Explain" role="status">Позначки відображаються лише за наявності координат. Орієнтовні координати не означають підтверджене місцеположення. Відсутність позначок не означає відсутність загрози.</div><div id="possibleZones" role="status">Повідомлення про можливі загрози: очікуємо дані. Відсутність даних не означає відсутність загрози.</div><div id="measureInfo" role="status">Відстань від Доброслава: натисніть будь-яку точку карти для вимірювання.</div><div class="data-audit" id="dataAudit" role="status">Перевіряємо час і якість повідомлень…</div>
  <div class="status" id="status"><h2 id="title">ЗАВАНТАЖЕННЯ ДАНИХ…</h2><p id="text">Очікуємо дані NEPTUN.</p><div class="distance" id="distance"></div><div class="movement" id="movement">—</div><div class="details" id="details"></div></div>
@@ -1576,6 +1594,50 @@ body.day-mode #powerDialog5815 .pw-legend{color:#425b75}body.day-mode #powerDial
  window.addEventListener('dobroslav:refresh',load);document.addEventListener('visibilitychange',()=>{if(dialog.open&&!document.hidden)load();});
  setInterval(()=>{if(dialog.open&&!document.hidden){render();load();}},300000);
  setInterval(()=>{if(dialog.open&&!document.hidden)render();},60000);
+})();
+</script>
+<!-- Інтеграція карти проблем громади. Базова карта тривог: 5.8.16. -->
+<dialog id="communityDialog32" aria-labelledby="communityTitle32">
+ <div class="community-shell32">
+  <div class="community-head32">
+   <h2 id="communityTitle32">Проблеми громади · тест</h2>
+   <div class="community-actions32">
+    <a href="https://dobroslav-community-test.gw85rpjd2z.workers.dev/" target="_blank" rel="noopener noreferrer">Окрема вкладка ↗</a>
+    <button type="button" id="communityClose32" aria-label="Закрити та повернутися до карти тривог">Повернутися до тривог ✕</button>
+   </div>
+  </div>
+  <p class="community-note32">Тестовий сервіс повідомлень про благоустрій та комунальні проблеми. Використовуйте вигадані контактні дані під час перевірки.</p>
+  <p id="communityLoad32" role="status" aria-live="polite">Завантаження сервісу…</p>
+  <iframe id="communityFrame32" title="Карта проблем Доброславської громади та подання повідомлень" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+ </div>
+</dialog>
+<script id="communityIntegration32Script">
+(()=>{
+ 'use strict';
+ const open=document.getElementById('communityOpen32');
+ const dialog=document.getElementById('communityDialog32');
+ const close=document.getElementById('communityClose32');
+ const frame=document.getElementById('communityFrame32');
+ const status=document.getElementById('communityLoad32');
+ let loaded=false,timer=null;
+ if(!open||!dialog||!close||!frame||!status)return;
+ function clearTimer(){if(timer!==null){clearTimeout(timer);timer=null;}}
+ frame.addEventListener('load',()=>{if(!frame.getAttribute('src'))return;loaded=true;clearTimer();status.hidden=true;});
+ frame.addEventListener('error',()=>{clearTimer();status.hidden=false;status.textContent='Сервіс не завантажився. Скористайтеся кнопкою «Окрема вкладка». ';});
+ open.addEventListener('click',event=>{
+  if(typeof dialog.showModal!=='function')return;
+  event.preventDefault();
+  if(!dialog.open)dialog.showModal();
+  open.setAttribute('aria-expanded','true');
+  if(!frame.getAttribute('src')){
+   status.hidden=false;status.textContent='Завантаження сервісу…';
+   timer=setTimeout(()=>{if(!loaded){status.hidden=false;status.textContent='Завантаження триває. Якщо сторінка не з’явилася, натисніть «Окрема вкладка». ';}},20000);
+   frame.setAttribute('src',open.href);
+  }
+  close.focus();
+ });
+ close.addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('close',()=>{open.setAttribute('aria-expanded','false');open.focus();});
 })();
 </script>
 </body></html>
